@@ -1,0 +1,5 @@
+# Single-page app fallback. Every route (/home, /s/agrix, /fund/c_agrix …) is
+# resolved by the Angular router in the browser, so the host must always serve
+# index.html instead of looking for a matching file on disk.
+# Read by Netlify and Cloudflare Pages from the published directory.
+/*  /index.html  200

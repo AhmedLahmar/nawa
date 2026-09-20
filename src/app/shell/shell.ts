@@ -50,6 +50,10 @@ interface NavItem { path: string; label: string; icon: string; count?: () => num
               </span>
             </a>
           }
+          <button class="btn btn--ghost btn--sm btn--block mt-8" (click)="store.toggleTheme()">
+            <app-icon [name]="store.theme() === 'dark' ? 'sun' : 'moon'" [size]="14" />
+            <span class="side__cta-label">{{ store.theme() === 'dark' ? 'Light mode' : 'Dark mode' }}</span>
+          </button>
           <button class="btn btn--ghost btn--sm btn--block mt-8" (click)="reset()">
             <app-icon name="refresh" [size]="14" /> <span class="side__cta-label">Reset demo data</span>
           </button>

@@ -61,6 +61,40 @@
   --rail-w: 320px;
   --top-h: 60px;
   --tabbar-h: 62px;
+
+  color-scheme: light;
+}
+
+/* ---------- Dark theme ---------- */
+/* Only neutrals, tints and shadows flip; brand/seed/amber/rose hues stay the
+   same so the identity is consistent across themes. */
+[data-theme="dark"] {
+  --brand-300: #8f82f5;
+  --brand-100: #2a2660;
+  --brand-50: #1e1b42;
+
+  --seed-100: #133a2c;
+  --amber-100: #3a2c12;
+  --rose-100: #3a1f27;
+  --sky-100: #16324a;
+
+  --ink: #f4f4fa;
+  --ink-2: #cdcee0;
+  --text: #e6e7f0;
+  --muted: #9a9cb2;
+  --faint: #6e7086;
+  --line: #2a2b3a;
+  --line-2: #22232f;
+  --surface: #16171f;
+  --canvas: #0c0d14;
+  --canvas-2: #101119;
+
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --sh-2: 0 4px 12px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --sh-3: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --sh-4: 0 24px 64px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -638,29 +672,31 @@ svg { display: block; }
 .notif.unread:hover { background: var(--brand-100); }
 .notif__ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none; }
 
-/* ---------- 16. Landing (dark sections) ---------- */
+/* ---------- 16. Landing (light marketing sections) ---------- */
+/* The landing keeps the `.dark` class name for its markup, but now renders
+   as a light marketing surface consistent with the rest of the app. */
 .dark {
-  background: radial-gradient(1200px 620px at 12% -8%, #2c2568 0%, transparent 58%),
-    radial-gradient(900px 520px at 88% 8%, #113f57 0%, transparent 52%), #0a0b13;
-  color: #ececf4;
+  background: radial-gradient(1100px 600px at 12% -8%, var(--brand-50) 0%, transparent 58%),
+    radial-gradient(900px 520px at 88% 8%, var(--seed-100) 0%, transparent 52%), var(--canvas);
+  color: var(--text);
 }
-.dark h1, .dark h2, .dark h3, .dark .display-xl, .dark .display-lg { color: #fff; }
-.dark .muted { color: #a3a4bb; }
-.dark .card { background: rgba(255, 255, 255, 0.045); border-color: rgba(255, 255, 255, 0.1); box-shadow: none; backdrop-filter: blur(8px); }
-.dark .kicker { background: rgba(110, 92, 247, 0.16); border-color: rgba(150, 134, 255, 0.32); color: #c8bffe; }
-.dark .btn { background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.16); color: #fff; }
-.dark .btn:hover { background: rgba(255, 255, 255, 0.13); }
-.dark .btn--primary { background: var(--brand-500); border-color: var(--brand-500); }
+.dark h1, .dark h2, .dark h3, .dark .display-xl, .dark .display-lg { color: var(--ink); }
+.dark .muted { color: var(--muted); }
+.dark .card { background: var(--surface); border-color: var(--line); box-shadow: var(--sh-2); backdrop-filter: none; }
+.dark .kicker { background: var(--brand-50); border-color: var(--brand-100); color: var(--brand-700); }
+.dark .btn { background: var(--surface); border-color: var(--line); color: var(--text); }
+.dark .btn:hover { background: var(--canvas-2); }
+.dark .btn--primary { background: var(--brand-500); border-color: var(--brand-500); color: #fff; }
 .dark .btn--primary:hover { background: var(--brand-600); }
-.dark .divider { background: rgba(255, 255, 255, 0.1); }
-.dark .tag { background: rgba(255, 255, 255, 0.08); color: #c3c4d8; }
+.dark .divider { background: var(--line-2); }
+.dark .tag { background: var(--canvas-2); color: var(--muted); }
 
 .lp-nav {
   position: sticky; top: 0; z-index: 40; height: 66px;
   display: flex; align-items: center; gap: 18px;
   padding: 0 clamp(16px, 4vw, 46px);
-  background: rgba(10, 11, 19, 0.72); backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: color-mix(in srgb, var(--surface) 80%, transparent); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
 }
 .lp-sec { padding: clamp(56px, 8vw, 108px) clamp(16px, 4vw, 46px); }
 .lp-wrap { max-width: 1200px; margin: 0 auto; }

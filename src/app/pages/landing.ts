@@ -13,7 +13,7 @@ import { fmt, UI } from '../ui/ui';
       <nav class="lp-nav">
         <a class="row g-9" routerLink="/">
           <span class="mark">🌱</span>
-          <span class="bb" style="font-family:var(--display);font-size:18px;letter-spacing:-.03em;color:#fff">Nawa</span>
+          <span class="bb" style="font-family:var(--display);font-size:18px;letter-spacing:-.03em;color:var(--ink)">Nawa</span>
         </a>
         <div class="row g-18 desktop-only" style="margin-left:22px">
           <a class="lp-link" href="#loop">How it works</a>
@@ -52,7 +52,7 @@ import { fmt, UI } from '../ui/ui';
                 }
               </div>
               <span class="sm muted">
-                <b style="color:#fff">1,284 founders</b> shared an update this month · Tunis, Sfax, Casablanca, Cairo, Dubai
+                <b style="color:var(--ink)">1,284 founders</b> shared an update this month · Tunis, Sfax, Casablanca, Cairo, Dubai
               </span>
             </div>
           </div>
@@ -69,18 +69,18 @@ import { fmt, UI } from '../ui/ui';
                   <app-av [name]="founder()?.name ?? ''" [size]="46" [verified]="true" />
                   <div class="grow">
                     <div class="row g-6">
-                      <span class="b" style="color:#fff">{{ founder()?.name }}</span>
+                      <span class="b" style="color:var(--ink)">{{ founder()?.name }}</span>
                       <span class="tag tag--seed">Score {{ founder()?.founderScore }}</span>
                     </div>
                     <div class="tiny muted">Founder @ {{ s.name }} · {{ s.city }}</div>
                   </div>
-                  <span class="day-pill" style="background:rgba(255,255,255,.14)">🌱 Day {{ s.day }}</span>
+                  <span class="day-pill">🌱 Day {{ s.day }}</span>
                 </div>
 
                 <div class="row g-8 mt-16" style="align-items:flex-start">
                   <app-av [name]="s.name" [emoji]="s.emoji" [gradient]="s.gradient" [size]="34" [square]="true" />
                   <div class="grow">
-                    <div class="sm b" style="color:#fff">{{ s.name }}</div>
+                    <div class="sm b" style="color:var(--ink)">{{ s.name }}</div>
                     <div class="tiny muted">{{ s.tagline }}</div>
                   </div>
                 </div>
@@ -92,7 +92,7 @@ import { fmt, UI } from '../ui/ui';
                 <div class="row between mt-16">
                   @for (k of s.kpis.slice(0, 3); track k.label) {
                     <div>
-                      <div class="bb" style="font-family:var(--display);font-size:18px;color:#fff">{{ k.value }}</div>
+                      <div class="bb" style="font-family:var(--display);font-size:18px;color:var(--ink)">{{ k.value }}</div>
                       <div class="tiny muted">{{ k.label }}</div>
                     </div>
                   }
@@ -118,13 +118,13 @@ import { fmt, UI } from '../ui/ui';
                 style="width:290px;padding:13px;left:-58px;bottom:-46px">
                 <div class="row g-8">
                   <app-av [name]="founder()?.name ?? ''" [size]="26" />
-                  <span class="tiny b" style="color:#fff">Day {{ s.day }} update</span>
-                  <span class="tag tag--ink" style="margin-left:auto;background:rgba(255,255,255,.1);color:#cfd0e6">Build in public</span>
+                  <span class="tiny b" style="color:var(--ink)">Day {{ s.day }} update</span>
+                  <span class="tag" style="margin-left:auto">Build in public</span>
                 </div>
                 <div class="tiny muted mt-8" style="line-height:1.5">
                   “Two cooperatives signed this week. Route accuracy is at 91% — the last 9% is where the money is.”
                 </div>
-                <div class="row g-12 tiny mt-12" style="color:#9fa0bb">
+                <div class="row g-12 tiny mt-12" style="color:var(--faint)">
                   <span>🚀 218</span><span>💬 34</span><span>🔁 12</span>
                 </div>
               </div>
@@ -134,7 +134,7 @@ import { fmt, UI } from '../ui/ui';
                 style="width:262px;padding:13px;right:-42px;top:-34px">
                 <div class="row g-8">
                   <span class="mark" style="width:24px;height:24px;border-radius:8px;font-size:12px">✨</span>
-                  <span class="tiny b" style="color:#fff">Copilot</span>
+                  <span class="tiny b" style="color:var(--ink)">Copilot</span>
                 </div>
                 <div class="tiny muted mt-8" style="line-height:1.5">
                   “Your next step: interview 20 cooperative managers in Béja this week. I drafted the questions.”
@@ -176,7 +176,7 @@ import { fmt, UI } from '../ui/ui';
                     <app-icon name="arrowR" [size]="16" style="color:#63647f;margin-top:14px" />
                     <div class="grow">
                       <div class="tiny up" style="color:#2ee6a8">On Nawa</div>
-                      <div class="sm" style="color:#fff">{{ row.b }}</div>
+                      <div class="sm" style="color:var(--ink)">{{ row.b }}</div>
                     </div>
                   </div>
                 }
@@ -216,7 +216,7 @@ import { fmt, UI } from '../ui/ui';
             @for (f of features; track f.title) {
               <div class="card card--lg col g-12" style="padding:22px">
                 <span class="mark" style="width:38px;height:38px;border-radius:12px;font-size:18px">{{ f.emoji }}</span>
-                <h3 style="color:#fff">{{ f.title }}</h3>
+                <h3 style="color:var(--ink)">{{ f.title }}</h3>
                 <p class="sm muted">{{ f.text }}</p>
                 <div class="row g-6 wrap mt-4">
                   @for (t of f.tags; track t) { <span class="tag">{{ t }}</span> }
@@ -237,7 +237,7 @@ import { fmt, UI } from '../ui/ui';
                 <div class="card row g-10" style="padding:11px 14px;min-width:246px">
                   <app-av [name]="s.name" [emoji]="s.emoji" [gradient]="s.gradient" [size]="32" [square]="true" />
                   <div>
-                    <div class="sm b" style="color:#fff">{{ s.name }}</div>
+                    <div class="sm b" style="color:var(--ink)">{{ s.name }}</div>
                     <div class="tiny muted">Day {{ s.day }} · {{ s.city }} · {{ s.industry }}</div>
                   </div>
                 </div>
@@ -255,7 +255,7 @@ import { fmt, UI } from '../ui/ui';
             @for (r of roles; track r.title) {
               <div class="card card--lg col g-10" style="padding:20px">
                 <span style="font-size:24px">{{ r.emoji }}</span>
-                <h4 style="color:#fff">{{ r.title }}</h4>
+                <h4 style="color:var(--ink)">{{ r.title }}</h4>
                 <p class="tiny muted">{{ r.text }}</p>
                 <div class="col g-6 mt-4">
                   @for (b of r.bullets; track b) {
@@ -289,11 +289,11 @@ import { fmt, UI } from '../ui/ui';
       </section>
 
       <footer class="lp-sec" style="padding-top:0">
-        <div class="lp-wrap row between wrap g-16" style="border-top:1px solid rgba(255,255,255,.08);padding-top:26px">
+        <div class="lp-wrap row between wrap g-16" style="border-top:1px solid var(--line);padding-top:26px">
           <div class="row g-9">
             <span class="mark">🌱</span>
             <div>
-              <div class="sm b" style="color:#fff">Nawa</div>
+              <div class="sm b" style="color:var(--ink)">Nawa</div>
               <div class="tiny muted">Where MENA founders build in public.</div>
             </div>
           </div>
@@ -312,9 +312,9 @@ import { fmt, UI } from '../ui/ui';
   styles: [`
     .mark { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
       background: linear-gradient(140deg, #14b87a, #5a46f0 120%); font-size: 15px; flex: none; }
-    .lp-link { font-size: 13.5px; font-weight: 540; color: #a3a4bb; }
-    .lp-link:hover { color: #fff; }
-    .panel-dark { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+    .lp-link { font-size: 13.5px; font-weight: 540; color: var(--muted); }
+    .lp-link:hover { color: var(--ink); }
+    .panel-dark { background: var(--canvas-2); border: 1px solid var(--line);
       border-radius: 12px; padding: 12px 14px; }
     .g-9 { gap: 9px } .g-18 { gap: 18px }
   `],

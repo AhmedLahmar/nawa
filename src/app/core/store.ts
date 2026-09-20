@@ -86,7 +86,34 @@ export class Store {
   private toastSeq = 0;
   private seq = 0;
 
-  constructor() { this.restore(); }
+  /* ---------------- theme (light default, persisted separately) ---------------- */
+  readonly theme = signal<'light' | 'dark'>('light');
+
+  constructor() {
+    this.restore();
+    this.restoreTheme();
+  }
+
+  toggleTheme(): void {
+    this.theme.update(t => (t === 'dark' ? 'light' : 'dark'));
+    this.applyTheme();
+    try { localStorage.setItem('nawa.theme', this.theme()); } catch { /* ignore */ }
+  }
+
+  private applyTheme(): void {
+    if (typeof document === 'undefined') return;
+    const el = document.documentElement;
+    if (this.theme() === 'dark') el.setAttribute('data-theme', 'dark');
+    else el.removeAttribute('data-theme');
+  }
+
+  private restoreTheme(): void {
+    try {
+      const saved = localStorage.getItem('nawa.theme');
+      if (saved === 'dark' || saved === 'light') this.theme.set(saved);
+    } catch { /* ignore */ }
+    this.applyTheme();
+  }
 
   /* ---------------- lookups ---------------- */
   person = (id: string) => this.people().find(p => p.id === id);

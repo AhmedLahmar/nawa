@@ -5,8 +5,9 @@
    ============================================================ */
 
 import {
-  Campaign, Challenge, Cohort, ExpertProfile, Incubator, Notification, Person,
-  Post, Roadmap, Stage, StageKey, Startup, StoryGroup, Thread, Video,
+  AppEvent, Campaign, Challenge, ChatRoom, Cohort, Donation, ExpertProfile, Gift, Incubator, Job,
+  LiveStream, Notification, Person, Post, Product, Roadmap, Stage, StageKey, Startup, StoryGroup,
+  Thread, Transaction, Video,
 } from './models';
 
 export const ME_ID = 'u_me';
@@ -1320,7 +1321,7 @@ export const NOTIFICATIONS: Notification[] = [
    ------------------------------------------------------------ */
 export const THREADS: Thread[] = [
   {
-    id: 't1', withId: 'e_karim', context: 'Mentor · Orbit Labs Cohort 2026', unread: 2,
+    id: 't1', withId: 'e_karim', context: 'Mentor · Orbit Labs Cohort 2026', unread: 2, online: true, pinned: true,
     messages: [
       { id: 'm1', fromId: 'e_karim', text: 'Saw your Day 87 update. The monthly invoicing request is a bigger signal than it looks — it means they are planning around you.', at: '09:12' },
       { id: 'm2', fromId: ME_ID, text: 'Agreed. I am tempted to build it this sprint, but the driver app is already late.', at: '09:20' },
@@ -1329,7 +1330,7 @@ export const THREADS: Thread[] = [
     ],
   },
   {
-    id: 't2', withId: 'p_ines', context: 'Founder · Kaissa', unread: 0,
+    id: 't2', withId: 'p_ines', context: 'Founder · Kaissa', unread: 0, online: false, lastSeen: '2h ago',
     messages: [
       { id: 'm5', fromId: 'p_ines', text: 'Your comment on my pricing poll saved me a week. Charging per shop now.', at: 'Yesterday' },
       { id: 'm6', fromId: ME_ID, text: 'Happy it helped. Do you have a retailer in Monastir who sells fresh produce? Testing something.', at: 'Yesterday' },
@@ -1337,14 +1338,14 @@ export const THREADS: Thread[] = [
     ],
   },
   {
-    id: 't3', withId: 'org_orbit', context: 'Incubator · Cohort 2026', unread: 1,
+    id: 't3', withId: 'org_orbit', context: 'Incubator · Cohort 2026', unread: 1, online: false, lastSeen: 'yesterday',
     messages: [
       { id: 'm8', fromId: 'org_orbit', text: 'Reminder: unit economics review is due Week 10. Your mentor Karim will join the session.', at: 'Mon' },
       { id: 'm9', fromId: 'org_orbit', text: 'Demo day is confirmed for 24 June, 40+ supporters attending. You are pitching 4th.', at: 'Mon' },
     ],
   },
   {
-    id: 't4', withId: 's_fatma', context: 'Supporter · backed AgriX', unread: 0,
+    id: 't4', withId: 's_fatma', context: 'Supporter · backed AgriX', unread: 0, online: true,
     messages: [
       { id: 'm10', fromId: 's_fatma', text: 'Just backed you at 150 TND. I read your failure post from Day 34 first — that is why.', at: 'Tue' },
       { id: 'm11', fromId: ME_ID, text: 'That means a lot, thank you. You will get the weekly numbers, including the bad weeks.', at: 'Tue' },
@@ -1409,4 +1410,234 @@ export const ROADMAPS: Roadmap[] = [
       },
     ],
   },
+];
+
+/* ------------------------------------------------------------
+   GIFTS  (used in Live donations and the tip jar)
+   ------------------------------------------------------------ */
+export const GIFTS: Gift[] = [
+  { id: 'g_seed', emoji: '🌱', label: 'Seed', amount: 2 },
+  { id: 'g_coffee', emoji: '☕', label: 'Coffee', amount: 5 },
+  { id: 'g_fire', emoji: '🔥', label: 'On fire', amount: 10 },
+  { id: 'g_rocket', emoji: '🚀', label: 'Rocket', amount: 25 },
+  { id: 'g_star', emoji: '⭐', label: 'Star', amount: 50 },
+  { id: 'g_crown', emoji: '👑', label: 'Champion', amount: 100 },
+];
+
+/* ------------------------------------------------------------
+   PRODUCTS  (marketplace)
+   ------------------------------------------------------------ */
+export const PRODUCTS: Product[] = [
+  {
+    id: 'pr_agrix_box', startupId: 's_agrix', sellerId: ME_ID, type: 'physical',
+    title: 'AgriX Weekly Farm Box', tagline: 'Seasonal produce, direct from the farms we serve.',
+    description: 'A weekly crate of seasonal vegetables and fruit sourced directly from the farms on the AgriX network — no intermediaries. Support the network while you eat well.',
+    price: 45, currency: CURRENCY, emoji: '🧺', gradient: G.agri, category: 'Food & produce',
+    stock: 120, sold: 340, rating: 4.8, includes: ['6–8 kg seasonal produce', 'Delivered every Saturday', 'Farm origin card in every box'],
+    tags: ['produce', 'weekly', 'Tunis'], featured: true,
+    reviews: [
+      { id: 'prv1', authorId: 's_leila', rating: 5, text: 'Fresher than the market and I know exactly which farm it came from.', at: '3d' },
+      { id: 'prv2', authorId: 's_fatma', rating: 4, text: 'Great quality. Would love a smaller box option.', at: '1w' },
+    ],
+  },
+  {
+    id: 'pr_agrix_playbook', startupId: 's_agrix', sellerId: ME_ID, type: 'digital',
+    title: 'The Build-in-Public Logistics Playbook', tagline: 'How we cut 4 intermediaries — the full template.',
+    description: 'The exact spreadsheets, interview scripts and route-grouping logic we used to go from idea to 87 paying customers. 38-page PDF + editable templates.',
+    price: 30, currency: CURRENCY, compareAt: 60, emoji: '📘', gradient: G.ink, category: 'Templates & guides',
+    sold: 212, rating: 4.9, includes: ['38-page PDF', 'Interview script templates', 'Route-grouping spreadsheet'],
+    deliveryNote: 'Instant download link after checkout (simulated).',
+    tags: ['playbook', 'logistics', 'template'], featured: true,
+    reviews: [{ id: 'prv3', authorId: 'p_ines', rating: 5, text: 'The interview scripts alone were worth it.', at: '5d' }],
+  },
+  {
+    id: 'pr_agrix_consult', startupId: 's_agrix', sellerId: ME_ID, type: 'service',
+    title: '30-min Ops Teardown with Ahmed', tagline: 'I will look at your logistics and find the waste.',
+    description: 'A focused call where I review your fulfilment/ops setup and point out the 2–3 changes that will save you the most. Founder-to-founder, no fluff.',
+    price: 80, currency: CURRENCY, emoji: '🎧', gradient: G.agri, category: 'Consulting',
+    sold: 18, rating: 5.0, includes: ['30-minute video call', 'Written summary after', 'One follow-up question'],
+    slots: ['Tue 10:00', 'Wed 15:00', 'Fri 09:00'], tags: ['consulting', 'ops'],
+    reviews: [],
+  },
+  {
+    id: 'pr_darija_credits', startupId: 's_darija', sellerId: 'p_yassine', type: 'digital',
+    title: 'Darija AI — 10k API credits', tagline: 'Voice AI for Maghrebi dialects.',
+    description: '10,000 API credits for the Darija AI speech stack. Build voice features that actually understand Derja, Darija and Algerian dialect.',
+    price: 120, currency: CURRENCY, emoji: '🗣️', gradient: G.ai, category: 'API & credits',
+    sold: 96, rating: 4.7, includes: ['10,000 API credits', 'Dialect model access', 'Sandbox key'],
+    deliveryNote: 'API key issued instantly (simulated).', tags: ['api', 'ai', 'voice'],
+    reviews: [],
+  },
+  {
+    id: 'pr_souklink_rug', startupId: 's_souklink', sellerId: 'p_rania', type: 'physical',
+    title: 'Handwoven Kilim — Sfax Artisans', tagline: 'Direct from the workshop, export-ready.',
+    description: 'A handwoven wool kilim from a Sfax artisan cooperative on the SoukLink network. Every purchase pays the maker directly.',
+    price: 240, currency: CURRENCY, emoji: '🧶', gradient: G.ecom, category: 'Crafts',
+    stock: 12, sold: 44, rating: 4.9, includes: ['120×180 cm handwoven kilim', 'Artisan name card', 'Export paperwork handled'],
+    tags: ['craft', 'artisan', 'export'], featured: true,
+    reviews: [{ id: 'prv4', authorId: 's_bilal', rating: 5, text: 'Beautiful piece, and I love that the maker is named.', at: '2w' }],
+  },
+  {
+    id: 'pr_nafhem_pack', startupId: 's_nafhem', sellerId: 'p_sami', type: 'digital',
+    title: 'Bac Maths Revision Pack', tagline: 'Teacher-reviewed, curriculum-aligned.',
+    description: 'A full term of maths revision aligned to the Tunisian bac curriculum, reviewed by practising teachers. Arabic + French.',
+    price: 25, currency: CURRENCY, emoji: '📐', gradient: G.edu, category: 'Education',
+    sold: 418, rating: 4.8, includes: ['12 chapters', 'Step-by-step solutions', 'Practice exams'],
+    deliveryNote: 'Access unlocked in your Nafhem account (simulated).', tags: ['education', 'bac', 'maths'],
+    reviews: [],
+  },
+];
+
+/* ------------------------------------------------------------
+   LIVE STREAMS
+   ------------------------------------------------------------ */
+export const LIVES: LiveStream[] = [
+  {
+    id: 'lv_agrix', hostId: ME_ID, startupId: 's_agrix', title: 'Live: packing the Saturday farm boxes 🧺',
+    category: 'Behind the scenes', emoji: '🧺', gradient: G.agri, status: 'live', viewers: 214, raised: 340, currency: CURRENCY,
+    hearts: 1820, startedAt: 'now', tags: ['agritech', 'behind the scenes'],
+    seedChat: [
+      { id: 'lc1', authorId: 's_leila', text: 'This is so satisfying to watch 😍' },
+      { id: 'lc2', authorId: 'p_ines', text: 'How many boxes per Saturday now?' },
+      { id: 'lc3', authorId: 's_fatma', text: '', giftId: 'g_rocket', amount: 25 },
+      { id: 'lc4', authorId: 'e_dina', text: 'Great cadence Ahmed 👏' },
+    ],
+  },
+  {
+    id: 'lv_yassine', hostId: 'p_yassine', startupId: 's_darija', title: 'Live coding: a Derja voice agent from scratch',
+    category: 'Building', emoji: '🗣️', gradient: G.ai, status: 'live', viewers: 486, raised: 720, currency: CURRENCY,
+    hearts: 3140, startedAt: 'now', tags: ['ai', 'live coding'],
+    seedChat: [
+      { id: 'lc5', authorId: 's_bilal', text: 'The accuracy on that last phrase was wild' },
+      { id: 'lc6', authorId: ME_ID, text: 'Following this closely 🔥', giftId: 'g_fire', amount: 10 },
+    ],
+  },
+  {
+    id: 'lv_layla', hostId: 'p_layla', startupId: 's_qard', title: 'AMA: raising a community round in MENA',
+    category: 'Fundraising', emoji: '💰', gradient: G.night, status: 'upcoming', viewers: 0, raised: 0, currency: CURRENCY,
+    hearts: 0, scheduledFor: 'Tomorrow · 18:00', tags: ['fundraising', 'ama'], seedChat: [],
+  },
+];
+
+/* ------------------------------------------------------------
+   COMMUNITY CHAT ROOMS
+   ------------------------------------------------------------ */
+export const ROOMS: ChatRoom[] = [
+  {
+    id: 'room_agritech', name: 'AgriTech Founders', kind: 'topic', emoji: '🌾', gradient: G.agri,
+    topic: 'Everything farm-to-market, logistics and produce in MENA.',
+    memberIds: [ME_ID, 'p_hamza', 'p_rania', 's_leila'], memberCount: 128, joined: true,
+    messages: [
+      { id: 'gm1', fromId: 'p_hamza', text: 'Anyone dealt with seasonal cash flow in supplier contracts?', at: '2h' },
+      { id: 'gm2', fromId: ME_ID, text: 'Yes — we moved 3 restaurants to monthly invoicing. Happy to share the template.', at: '1h' },
+      { id: 'gm3', fromId: 's_leila', text: 'Would love that template Ahmed 🙏', at: '54m' },
+    ],
+  },
+  {
+    id: 'room_orbit26', name: 'Orbit Labs · Cohort 2026', kind: 'cohort', emoji: '🛰️', gradient: G.ink,
+    topic: 'Private room for the 2026 cohort. Mentors drop in weekly.', refId: 'co_orbit26',
+    memberIds: [ME_ID, 'p_mariem', 'p_ines', 'p_rania', 'p_hamza', 'e_karim'], memberCount: 9, joined: true,
+    messages: [
+      { id: 'gm4', fromId: 'e_karim', text: 'Reminder: unit economics review is Week 10. Bring real numbers, not projections.', at: '3h' },
+      { id: 'gm5', fromId: 'p_mariem', text: 'Will the session be recorded? Clashes with a clinic shift.', at: '2h' },
+      { id: 'gm6', fromId: 'org_orbit', text: 'Yes, recording shared in this room after.', at: '2h', system: true },
+    ],
+  },
+  {
+    id: 'room_mvp', name: 'Build MVP in 30 Days', kind: 'challenge', emoji: '🚀', gradient: G.night,
+    topic: 'Challenge participants keeping each other accountable.', refId: 'ch_mvp',
+    memberIds: [ME_ID, 'p_yassine', 'p_ines', 'p_mariem'], memberCount: 104, joined: true,
+    messages: [
+      { id: 'gm7', fromId: 'p_yassine', text: 'Day 19 streak. Shipped the voice agent demo today.', at: '5h' },
+      { id: 'gm8', fromId: 'p_ines', text: 'Nice! I hit 10 tested users this morning 🎉', at: '4h' },
+    ],
+  },
+  {
+    id: 'room_fundraising', name: 'Fundraising & Community Rounds', kind: 'topic', emoji: '💰', gradient: G.fin,
+    topic: 'Decks, term sheets, crowdfunding tactics.',
+    memberIds: ['p_nour', 'p_layla', 'e_walid'], memberCount: 214, joined: false,
+    messages: [
+      { id: 'gm9', fromId: 'e_walid', text: 'The #1 reason MENA rounds stall: opening cold. Line up 30% before you launch.', at: '1d' },
+      { id: 'gm10', fromId: 'p_layla', text: 'Can confirm. We had 40% committed before day one.', at: '1d' },
+    ],
+  },
+];
+
+/* ------------------------------------------------------------
+   JOBS  (talent board)
+   ------------------------------------------------------------ */
+export const JOBS: Job[] = [
+  {
+    id: 'job_agrix_flutter', startupId: 's_agrix', posterId: ME_ID, title: 'Flutter Developer — Driver App',
+    kind: 'contract', location: 'Tunis', remote: true, skills: ['Flutter', 'Offline sync', 'Maps'],
+    description: 'Own the AgriX driver app: offline order sync, route view, proof of delivery. 6–8 weeks, part-time, paid. Drivers lose signal constantly on rural routes, so offline-first is the whole job.',
+    pay: '3,000–4,500 TND for the engagement', postedAt: '2d', applicants: 7, open: true,
+  },
+  {
+    id: 'job_darija_ml', startupId: 's_darija', posterId: 'p_yassine', title: 'ML Engineer — Speech',
+    kind: 'full-time', location: 'Casablanca', remote: true, skills: ['PyTorch', 'ASR', 'Arabic dialects'],
+    description: 'Join the team pushing dialect speech recognition past 95%. You will own data pipelines and model evaluation for Maghrebi dialects.',
+    equity: '0.5–1.2%', pay: 'Competitive + equity', postedAt: '4d', applicants: 14, open: true,
+  },
+  {
+    id: 'job_sahti_cofounder', startupId: 's_sahti', posterId: 'p_mariem', title: 'Technical Co-founder',
+    kind: 'co-founder', location: 'Sousse', remote: false, skills: ['Full-stack', 'HealthTech', 'Product'],
+    description: 'Doctor-founder looking for a technical co-founder to own product and engineering for specialist teleconsultation. Real traction: 340 consultations, 11 partner points.',
+    equity: '15–30%', postedAt: '1w', applicants: 21, open: true,
+  },
+  {
+    id: 'job_kaissa_design', startupId: 's_kaissa', posterId: 'p_ines', title: 'Product Designer (part-time)',
+    kind: 'part-time', location: 'Monastir', remote: true, skills: ['UI', 'Mobile', 'Design systems'],
+    description: 'Shape the Kaissa POS mobile experience for shopkeepers who have never used an app. Offline-first, one-handed, fast.',
+    pay: '800–1,200 TND/month', postedAt: '5d', applicants: 9, open: true,
+  },
+];
+
+/* ------------------------------------------------------------
+   EVENTS
+   ------------------------------------------------------------ */
+export const EVENTS: AppEvent[] = [
+  {
+    id: 'ev_orbit_demo', title: 'Orbit Labs Cohort 2026 — Demo Day', kind: 'demo-day', hostId: 'org_orbit',
+    incubatorId: 'inc_orbit', emoji: '🛰️', gradient: G.ink, when: '24 Jun 2026 · 17:00', dateSort: 20260624,
+    location: 'Lac 2, Tunis + livestream', online: true,
+    description: '5 startups pitch to 40+ supporters and investors. AgriX pitches 4th. Public livestream on Nawa Live.',
+    attendees: 214, capacity: 300, going: true, tags: ['demo day', 'pitch'],
+  },
+  {
+    id: 'ev_walid_ama', title: 'Ex-VC AMA: Why investors passed on your deck', kind: 'ama', hostId: 'e_walid',
+    emoji: '🎤', gradient: G.night, when: 'Tomorrow · 18:00', dateSort: 20260921, location: 'Nawa Live', online: true,
+    description: 'Walid Zribi reviews the 3 slides investors actually read, live, and takes questions.',
+    attendees: 486, going: false, tags: ['fundraising', 'ama'],
+  },
+  {
+    id: 'ev_pitch_night', title: 'MENA Pitch Night — September', kind: 'pitch', hostId: 'org_maghreb',
+    incubatorId: 'inc_maghreb', emoji: '🔥', gradient: G.sunset, when: '28 Sep 2026 · 19:00', dateSort: 20260928,
+    location: 'Casablanca + online', online: true,
+    description: '8 founders, 90 seconds each, community votes live. Winner gets an intro to 3 supporters.',
+    attendees: 142, capacity: 200, going: false, tags: ['pitch', 'competition'],
+  },
+  {
+    id: 'ev_agritech_meetup', title: 'AgriTech Founders Meetup', kind: 'meetup', hostId: ME_ID, startupId: 's_agrix',
+    emoji: '🌾', gradient: G.agri, when: '2 Oct 2026 · 10:00', dateSort: 20261002, location: 'Tunis', online: false,
+    description: 'Informal meetup for founders working on farm-to-market, logistics and produce. Coffee on AgriX.',
+    attendees: 32, capacity: 40, going: true, tags: ['agritech', 'meetup'],
+  },
+];
+
+/* ------------------------------------------------------------
+   ORDERS / DONATIONS / TRANSACTIONS  (seed history for the wallet)
+   ------------------------------------------------------------ */
+export const DONATIONS: Donation[] = [
+  { id: 'dn1', fromId: 's_fatma', toStartupId: 's_agrix', amount: 50, currency: CURRENCY, message: 'Keep shipping — I read every update.', source: 'startup', at: '2d' },
+  { id: 'dn2', fromId: 's_leila', toStartupId: 's_agrix', amount: 20, currency: CURRENCY, giftId: 'g_rocket', source: 'live', at: '1d' },
+  { id: 'dn3', fromId: 's_bilal', toPersonId: ME_ID, amount: 15, currency: CURRENCY, message: 'For the logistics playbook, thank you!', source: 'profile', at: '5d' },
+];
+
+export const TRANSACTIONS: Transaction[] = [
+  { id: 'tx1', kind: 'campaign', amount: 18500, currency: CURRENCY, label: 'Community round — AgriX', at: 'ongoing', ts: 5 },
+  { id: 'tx2', kind: 'sale', amount: 45, currency: CURRENCY, label: 'Farm Box × 1', counterpartyId: 's_leila', at: '2d', ts: 40 },
+  { id: 'tx3', kind: 'sale', amount: 30, currency: CURRENCY, label: 'Logistics Playbook', counterpartyId: 's_bilal', at: '3d', ts: 60 },
+  { id: 'tx4', kind: 'donation', amount: 50, currency: CURRENCY, label: 'Donation from Fatma Jlassi', counterpartyId: 's_fatma', at: '2d', ts: 42 },
+  { id: 'tx5', kind: 'gift', amount: 25, currency: CURRENCY, label: 'Rocket gift on live', counterpartyId: 's_leila', at: '1d', ts: 30 },
 ];

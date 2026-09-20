@@ -304,7 +304,8 @@ export interface Challenge {
 
 export type NotifKind =
   | 'follow' | 'support' | 'comment' | 'milestone'
-  | 'funding' | 'expert' | 'challenge' | 'incubator';
+  | 'funding' | 'expert' | 'challenge' | 'incubator'
+  | 'donation' | 'order' | 'sale' | 'live' | 'job' | 'event' | 'message';
 
 export interface Notification {
   id: string;
@@ -317,11 +318,21 @@ export interface Notification {
   meta?: string;
 }
 
+export interface ChatAttachment {
+  kind: 'image' | 'file' | 'link';
+  emoji: string;
+  label: string;
+}
+
 export interface ChatMessage {
   id: string;
   fromId: string;
   text: string;
   at: string;
+  /** delivery state for messages the user sent */
+  read?: boolean;
+  attachment?: ChatAttachment;
+  reaction?: string;
 }
 
 export interface Thread {
@@ -330,6 +341,11 @@ export interface Thread {
   context: string;
   messages: ChatMessage[];
   unread: number;
+  /** presence, purely simulated */
+  online?: boolean;
+  lastSeen?: string;
+  pinned?: boolean;
+  archived?: boolean;
 }
 
 export interface RoadmapTask {
@@ -376,4 +392,231 @@ export interface IdeaAnalysis {
   mvp: { label: string; why: string }[];
   pricing: string;
   segments: string[];
+}
+
+/* ============================================================
+   MARKETPLACE — products, orders, reviews
+   ============================================================ */
+
+export type ProductType = 'physical' | 'digital' | 'service';
+
+export interface ProductReview {
+  id: string;
+  authorId: string;
+  rating: number;      // 1–5
+  text: string;
+  at: string;
+}
+
+export interface Product {
+  id: string;
+  startupId: string;
+  sellerId: string;    // person id of the founder
+  type: ProductType;
+  title: string;
+  tagline: string;
+  description: string;
+  price: number;
+  currency: string;
+  /** optional strike-through price for a discount badge */
+  compareAt?: number;
+  emoji: string;
+  gradient: string;
+  category: string;
+  /** physical: units in stock; service: slots; digital: undefined (unlimited) */
+  stock?: number;
+  sold: number;
+  rating: number;
+  reviews: ProductReview[];
+  /** what the buyer gets — bullet points */
+  includes: string[];
+  /** service-only: available slots */
+  slots?: string[];
+  /** digital-only: delivery note */
+  deliveryNote?: string;
+  tags: string[];
+  featured?: boolean;
+  createdByUser?: boolean;
+}
+
+export type OrderStatus = 'paid' | 'fulfilled' | 'refunded';
+
+export interface Order {
+  id: string;
+  productId: string;
+  buyerId: string;
+  sellerId: string;
+  qty: number;
+  amount: number;
+  currency: string;
+  status: OrderStatus;
+  at: string;
+  /** service booking slot, if applicable */
+  slot?: string;
+}
+
+/* ============================================================
+   DONATIONS — direct support ("tip jar"), incl. live gifts
+   ============================================================ */
+
+export interface Gift {
+  id: string;
+  emoji: string;
+  label: string;
+  amount: number;
+}
+
+export type DonationSource = 'profile' | 'startup' | 'live';
+
+export interface Donation {
+  id: string;
+  fromId: string;
+  toStartupId?: string;
+  toPersonId?: string;
+  amount: number;
+  currency: string;
+  message?: string;
+  giftId?: string;
+  source: DonationSource;
+  at: string;
+  anonymous?: boolean;
+}
+
+/* ============================================================
+   LIVE — TikTok-style streaming with live chat, reactions, gifts
+   ============================================================ */
+
+export interface LiveChatMessage {
+  id: string;
+  authorId: string;
+  text: string;
+  /** a gift attached to this chat line */
+  giftId?: string;
+  amount?: number;
+  system?: boolean;
+}
+
+export interface LiveStream {
+  id: string;
+  hostId: string;          // person id
+  startupId?: string;
+  title: string;
+  category: string;
+  emoji: string;
+  gradient: string;
+  status: 'live' | 'upcoming' | 'ended';
+  viewers: number;
+  /** total simulated support raised during the stream */
+  raised: number;
+  currency: string;
+  hearts: number;
+  startedAt?: string;
+  scheduledFor?: string;
+  tags: string[];
+  /** seed chat so a freshly opened stream isn't empty */
+  seedChat: LiveChatMessage[];
+}
+
+/* ============================================================
+   GROUP CHAT — community rooms (per startup / cohort / challenge)
+   ============================================================ */
+
+export type RoomKind = 'startup' | 'cohort' | 'challenge' | 'topic';
+
+export interface GroupMessage {
+  id: string;
+  fromId: string;
+  text: string;
+  at: string;
+  system?: boolean;
+}
+
+export interface ChatRoom {
+  id: string;
+  name: string;
+  kind: RoomKind;
+  emoji: string;
+  gradient: string;
+  topic: string;
+  memberIds: string[];
+  memberCount: number;
+  messages: GroupMessage[];
+  joined?: boolean;
+  refId?: string;   // startup/cohort/challenge id it belongs to
+}
+
+/* ============================================================
+   JOBS — talent board
+   ============================================================ */
+
+export type JobKind = 'full-time' | 'part-time' | 'contract' | 'co-founder' | 'volunteer';
+
+export interface JobApplication {
+  id: string;
+  jobId: string;
+  applicantId: string;
+  note: string;
+  at: string;
+  status: 'submitted' | 'reviewing' | 'accepted' | 'declined';
+}
+
+export interface Job {
+  id: string;
+  startupId: string;
+  posterId: string;
+  title: string;
+  kind: JobKind;
+  location: string;
+  remote: boolean;
+  skills: string[];
+  description: string;
+  equity?: string;
+  pay?: string;
+  postedAt: string;
+  applicants: number;
+  open: boolean;
+}
+
+/* ============================================================
+   EVENTS — demo days, AMAs, pitch nights
+   ============================================================ */
+
+export type EventKind = 'demo-day' | 'ama' | 'pitch' | 'workshop' | 'meetup';
+
+export interface AppEvent {
+  id: string;
+  title: string;
+  kind: EventKind;
+  hostId: string;        // person / org id
+  startupId?: string;
+  incubatorId?: string;
+  emoji: string;
+  gradient: string;
+  when: string;
+  dateSort: number;      // for ordering
+  location: string;
+  online: boolean;
+  description: string;
+  attendees: number;
+  capacity?: number;
+  going?: boolean;
+  tags: string[];
+}
+
+/* ============================================================
+   WALLET — unifies campaign funds, donations, sales, live gifts
+   ============================================================ */
+
+export type TxnKind = 'donation' | 'sale' | 'gift' | 'campaign' | 'payout' | 'purchase';
+
+export interface Transaction {
+  id: string;
+  kind: TxnKind;
+  /** positive = money in, negative = money out */
+  amount: number;
+  currency: string;
+  label: string;
+  counterpartyId?: string;
+  at: string;
+  ts: number;
 }

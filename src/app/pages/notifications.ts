@@ -13,6 +13,13 @@ const META: Record<NotifKind, { icon: string; bg: string; fg: string; label: str
   expert: { icon: 'cap', bg: 'var(--brand-50)', fg: 'var(--brand-600)', label: 'Expert' },
   challenge: { icon: 'flag', bg: 'var(--amber-100)', fg: 'var(--amber-600)', label: 'Challenge' },
   incubator: { icon: 'building', bg: 'var(--brand-50)', fg: 'var(--brand-600)', label: 'Programme' },
+  donation: { icon: 'heart', bg: 'var(--seed-100)', fg: 'var(--seed-600)', label: 'Donation' },
+  order: { icon: 'gift', bg: 'var(--amber-100)', fg: 'var(--amber-600)', label: 'Order' },
+  sale: { icon: 'wallet', bg: 'var(--seed-100)', fg: 'var(--seed-600)', label: 'Sale' },
+  live: { icon: 'video', bg: 'var(--rose-100, #ffe4ea)', fg: 'var(--rose-500)', label: 'Live' },
+  job: { icon: 'briefcase', bg: 'var(--brand-50)', fg: 'var(--brand-600)', label: 'Job' },
+  event: { icon: 'calendar', bg: 'var(--brand-50)', fg: 'var(--brand-600)', label: 'Event' },
+  message: { icon: 'message', bg: 'var(--brand-50)', fg: 'var(--brand-600)', label: 'Message' },
 };
 
 const FILTERS = [

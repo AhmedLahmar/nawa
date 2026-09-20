@@ -15,6 +15,12 @@ import { ChallengesPage, ChallengePage } from './pages/challenges';
 import { VideosPage } from './pages/videos';
 import { NotificationsPage } from './pages/notifications';
 import { MessagesPage } from './pages/messages';
+import { ShopPage, ProductPage, SellPage } from './pages/shop';
+import { LivePage, LiveViewerPage } from './pages/live';
+import { WalletPage } from './pages/wallet';
+import { JobsPage, JobPage, PostJobPage } from './pages/jobs';
+import { EventsPage } from './pages/events';
+import { RoomsPage, RoomPage } from './pages/rooms';
 
 export const routes: Routes = [
   { path: '', component: Landing, pathMatch: 'full', title: 'Nawa — build your startup in public' },
@@ -48,10 +54,29 @@ export const routes: Routes = [
       { path: 'notifications', component: NotificationsPage, title: 'Notifications · Nawa' },
       { path: 'messages', component: MessagesPage, title: 'Messages · Nawa' },
 
+      { path: 'shop', component: ShopPage, title: 'Marketplace · Nawa' },
+      { path: 'shop/new', component: SellPage, title: 'Sell a product · Nawa' },
+      { path: 'shop/:id', component: ProductPage, title: 'Product · Nawa' },
+
+      { path: 'live', component: LivePage, title: 'Live · Nawa' },
+
+      { path: 'wallet', component: WalletPage, title: 'Wallet · Nawa' },
+
+      { path: 'jobs', component: JobsPage, title: 'Jobs · Nawa' },
+      { path: 'jobs/new', component: PostJobPage, title: 'Post a role · Nawa' },
+      { path: 'jobs/:id', component: JobPage, title: 'Role · Nawa' },
+
+      { path: 'events', component: EventsPage, title: 'Events · Nawa' },
+
+      { path: 'rooms', component: RoomsPage, title: 'Chat rooms · Nawa' },
+      { path: 'rooms/:id', component: RoomPage, title: 'Room · Nawa' },
+
       { path: 's/:slug', component: StartupPage, title: 'Startup · Nawa' },
       { path: 'me', component: PersonPage, title: 'Your profile · Nawa' },
       { path: 'u/:handle', component: PersonPage, title: 'Profile · Nawa' },
     ],
   },
+  // full-screen live viewer sits outside the shell chrome
+  { path: 'live/:id', component: LiveViewerPage, title: 'Live · Nawa' },
   { path: '**', redirectTo: '' },
 ];

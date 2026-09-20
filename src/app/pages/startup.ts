@@ -1,15 +1,16 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '../core/store';
 import { CARDS } from '../feed/cards';
 import { PostCard } from '../feed/post-card';
+import { DonateDialog, DonationsLedger } from '../feed/donate';
 import { fmt, UI } from '../ui/ui';
 
 @Component({
   selector: 'app-startup-page',
   standalone: true,
-  imports: [RouterLink, UI, CARDS, PostCard],
+  imports: [RouterLink, UI, CARDS, PostCard, DonateDialog, DonationsLedger],
   template: `
     @if (s(); as s) {
       <div class="page page--narrow">
@@ -36,6 +37,7 @@ import { fmt, UI } from '../ui/ui';
                 @if (campaign(); as c) {
                   <a class="btn btn--seed" [routerLink]="['/fund', c.id]"><app-icon name="rocket" [size]="15" /> Support</a>
                 }
+                <button class="btn btn--outline-brand" (click)="tip.set(true)"><app-icon name="heart" [size]="15" /> Tip</button>
                 <button class="btn btn--icon" (click)="store.toast('Link copied to clipboard (demo)', '🔗')">
                   <app-icon name="link" [size]="16" />
                 </button>
@@ -148,6 +150,28 @@ import { fmt, UI } from '../ui/ui';
                 </div>
               </div>
             }
+
+            @if (products().length) {
+              <div class="col g-12">
+                <div class="row between">
+                  <h4>Shop this startup</h4>
+                  <a class="link tiny" routerLink="/shop">All products →</a>
+                </div>
+                <div class="grid grid-3">
+                  @for (p of products(); track p.id) {
+                    <a class="card card--hover col" [routerLink]="['/shop', p.id]" style="overflow:hidden;text-decoration:none">
+                      <app-media [emoji]="p.emoji" [caption]="p.title" [gradient]="p.gradient" ratio="16x9" [radius]="0" />
+                      <div class="col g-4 pad-sm">
+                        <span class="sm b clamp-2">{{ p.title }}</span>
+                        <span class="b num seed-text">{{ fmt.money(p.price, p.currency) }}</span>
+                      </div>
+                    </a>
+                  }
+                </div>
+              </div>
+            }
+
+            <app-donations-ledger [startupId]="s.id" />
 
             @if (s.endorsements.length) {
               <div class="card">
@@ -286,6 +310,10 @@ import { fmt, UI } from '../ui/ui';
           </div>
         }
       </div>
+
+      @if (tip()) {
+        <app-donate-dialog [toStartupId]="s.id" source="startup" (close)="tip.set(false)" />
+      }
     } @else {
       <div class="page">
         <app-empty icon="compass" title="Startup not found" text="This page may have been part of an earlier demo session.">
@@ -303,6 +331,11 @@ export class StartupPage {
   private params = toSignal(this.route.paramMap);
   private query = toSignal(this.route.queryParamMap);
 
+  constructor() {
+    // open the tip dialog when arrived via ?tip=1 (e.g. from a product page)
+    effect(() => { if (this.query()?.get('tip') === '1') this.tip.set(true); });
+  }
+
   readonly tabs = [
     { key: 'overview', label: 'Overview' },
     { key: 'journey', label: 'Journey' },
@@ -311,6 +344,7 @@ export class StartupPage {
   ];
   private manualTab = signal<string | null>(null);
   readonly tab = computed(() => this.manualTab() ?? this.query()?.get('tab') ?? 'overview');
+  readonly tip = signal(false);
 
   readonly s = computed(() => this.store.startupBySlug(this.params()?.get('slug') ?? ''));
   readonly founder = computed(() => {
@@ -337,6 +371,10 @@ export class StartupPage {
   readonly videos = computed(() => {
     const s = this.s();
     return s ? this.store.videosOf(s.id) : [];
+  });
+  readonly products = computed(() => {
+    const s = this.s();
+    return s ? this.store.productsOfStartup(s.id) : [];
   });
   readonly community = computed(() =>
     this.store.people().filter(p => p.role === 'supporter' || p.role === 'expert').slice(0, 6));

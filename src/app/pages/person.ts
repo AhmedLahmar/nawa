@@ -4,12 +4,13 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '../core/store';
 import { CARDS } from '../feed/cards';
 import { PostCard } from '../feed/post-card';
+import { DonateDialog, DonationsLedger } from '../feed/donate';
 import { fmt, UI } from '../ui/ui';
 
 @Component({
   selector: 'app-person-page',
   standalone: true,
-  imports: [RouterLink, UI, CARDS, PostCard],
+  imports: [RouterLink, UI, CARDS, PostCard, DonateDialog, DonationsLedger],
   template: `
     @if (p(); as p) {
       <div class="page page--narrow">
@@ -42,6 +43,7 @@ import { fmt, UI } from '../ui/ui';
                     @if (store.isFollowing(p.id)) { Following ✓ } @else { <app-icon name="plus" [size]="15" /> Follow }
                   </button>
                   <a class="btn" routerLink="/messages"><app-icon name="message" [size]="15" /> Message</a>
+                  <button class="btn btn--outline-brand" (click)="tip.set(true)"><app-icon name="heart" [size]="15" /> Tip</button>
                   @if (expert(); as e) {
                     <a class="btn btn--outline-brand" [routerLink]="['/experts', e.id]"><app-icon name="cap" [size]="15" /> Book session</a>
                   }
@@ -104,6 +106,8 @@ import { fmt, UI } from '../ui/ui';
                 </div>
               </div>
             }
+
+            @if (!isMe()) { <app-donations-ledger [personId]="p.id" /> }
 
             <div class="card">
               <div class="card__head"><h4>How this score is built</h4><span class="tag tag--brand">Demo metric</span></div>
@@ -240,6 +244,10 @@ import { fmt, UI } from '../ui/ui';
           </div>
         }
       </div>
+
+      @if (tip()) {
+        <app-donate-dialog [toPersonId]="p.id" source="profile" (close)="tip.set(false)" />
+      }
     } @else {
       <div class="page">
         <app-empty icon="user" title="Profile not found" text="Try browsing founders in Discover instead.">
@@ -256,6 +264,7 @@ export class PersonPage {
 
   private params = toSignal(this.route.paramMap);
   readonly tab = signal('overview');
+  readonly tip = signal(false);
   readonly tabs = [
     { key: 'overview', label: 'Overview' },
     { key: 'updates', label: 'Updates' },

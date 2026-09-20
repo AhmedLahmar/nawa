@@ -98,9 +98,9 @@ interface NavItem { path: string; label: string; icon: string; count?: () => num
       <!-- ---------- mobile bottom nav ---------- -->
       <nav class="tabbar">
         <a routerLink="/home" routerLinkActive="on"><app-icon name="home" [size]="21" /><span>Home</span></a>
-        <a routerLink="/discover" routerLinkActive="on"><app-icon name="compass" [size]="21" /><span>Discover</span></a>
+        <a routerLink="/live" routerLinkActive="on"><app-icon name="video" [size]="21" /><span>Live</span></a>
         <a routerLink="/build" [queryParams]="{ compose: 1 }"><span class="fab"><app-icon name="plus" [size]="21" [weight]="2.2" /></span></a>
-        <a routerLink="/fund" routerLinkActive="on"><app-icon name="dollar" [size]="21" /><span>Fund</span></a>
+        <a routerLink="/shop" routerLinkActive="on"><app-icon name="wallet" [size]="21" /><span>Shop</span></a>
         <a routerLink="/me" routerLinkActive="on"><app-icon name="user" [size]="21" /><span>You</span></a>
       </nav>
     </div>
@@ -124,13 +124,19 @@ export class Shell {
     { path: '/discover', label: 'Discover', icon: 'compass' },
     { path: '/build', label: 'Build', icon: 'rocket' },
     { path: '/fund', label: 'Fund', icon: 'dollar' },
+    { path: '/shop', label: 'Marketplace', icon: 'wallet' },
+    { path: '/live', label: 'Live', icon: 'video', count: () => this.store.liveNow().length },
     { path: '/experts', label: 'Experts', icon: 'cap' },
     { path: '/incubators', label: 'Incubators', icon: 'building' },
   ];
 
   readonly secondary: NavItem[] = [
+    { path: '/rooms', label: 'Chat rooms', icon: 'users' },
     { path: '/challenges', label: 'Challenges', icon: 'flag' },
+    { path: '/jobs', label: 'Jobs', icon: 'briefcase' },
+    { path: '/events', label: 'Events', icon: 'calendar' },
     { path: '/videos', label: 'Videos', icon: 'video' },
+    { path: '/wallet', label: 'Wallet', icon: 'wallet' },
     { path: '/notifications', label: 'Notifications', icon: 'bell', count: () => this.store.unreadNotifs() },
     { path: '/messages', label: 'Messages', icon: 'message', count: () => this.store.unreadMsgs() },
     { path: '/me', label: 'Profile', icon: 'user' },

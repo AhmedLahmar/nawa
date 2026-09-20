@@ -5,12 +5,15 @@
 
 import { computed, Injectable, signal } from '@angular/core';
 import {
-  Campaign, Challenge, Comment, ExpertProfile, FundSlice, IdeaAnalysis, Incubator, Notification,
-  Person, Post, PostType, Reward, Roadmap, Startup, StoryGroup, Thread, Video,
+  AppEvent, Campaign, Challenge, ChatRoom, Comment, Donation, ExpertProfile, FundSlice, Gift,
+  GroupMessage, IdeaAnalysis, Incubator, Job, JobApplication, LiveChatMessage, LiveStream,
+  Notification, Order, Person, Post, PostType, Product, ProductType, Reward, Roadmap, Startup,
+  StoryGroup, Thread, Transaction, Video,
 } from './models';
 import {
-  CAMPAIGNS, CHALLENGES, CURRENCY, EXPERTS, INCUBATORS, ME_ID, NOTIFICATIONS,
-  PEOPLE, POSTS, ROADMAPS, STARTUPS, STORIES, THREADS, VIDEOS, stages,
+  CAMPAIGNS, CHALLENGES, CURRENCY, DONATIONS, EVENTS, EXPERTS, GIFTS, INCUBATORS, JOBS, LIVES,
+  ME_ID, NOTIFICATIONS, PEOPLE, POSTS, PRODUCTS, ROADMAPS, ROOMS, STARTUPS, STORIES, THREADS,
+  TRANSACTIONS, VIDEOS, stages,
 } from './mock-data';
 import { CopilotAnswer, generateRoadmap } from './ai';
 
@@ -51,6 +54,12 @@ export class Store {
   readonly notifications = signal<Notification[]>(clone(NOTIFICATIONS));
   readonly threads = signal<Thread[]>(clone(THREADS));
   readonly roadmaps = signal<Roadmap[]>(clone(ROADMAPS));
+  readonly products = signal<Product[]>(clone(PRODUCTS));
+  readonly livestreams = signal<LiveStream[]>(clone(LIVES));
+  readonly rooms = signal<ChatRoom[]>(clone(ROOMS));
+  readonly jobs = signal<Job[]>(clone(JOBS));
+  readonly events = signal<AppEvent[]>(clone(EVENTS));
+  readonly gifts = GIFTS;
 
   /* ---------------- session state ---------------- */
   readonly activeStartupId = signal<string>('s_agrix');
@@ -65,6 +74,12 @@ export class Store {
   readonly analyses = signal<IdeaAnalysis[]>([]);
   readonly onboarded = signal<boolean>(false);
   readonly currency = CURRENCY;
+
+  /* new-feature state */
+  readonly orders = signal<Order[]>([]);
+  readonly donations = signal<Donation[]>(clone(DONATIONS));
+  readonly transactions = signal<Transaction[]>(clone(TRANSACTIONS));
+  readonly applications = signal<JobApplication[]>([]);
 
   readonly toasts = signal<Toast[]>([]);
   private toastSeq = 0;
@@ -91,6 +106,16 @@ export class Store {
   storiesOf = (personId: string) => this.stories().filter(s => s.authorId === personId);
   cohortOf = (startup: Startup) =>
     this.incubatorById(startup.incubatorId)?.cohorts.find(c => c.id === startup.cohortId);
+  product = (id?: string) => (id ? this.products().find(p => p.id === id) : undefined);
+  productsOfStartup = (startupId: string) => this.products().filter(p => p.startupId === startupId);
+  productsBySeller = (personId: string) => this.products().filter(p => p.sellerId === personId);
+  livestream = (id?: string) => (id ? this.livestreams().find(l => l.id === id) : undefined);
+  room = (id?: string) => (id ? this.rooms().find(r => r.id === id) : undefined);
+  job = (id?: string) => (id ? this.jobs().find(j => j.id === id) : undefined);
+  jobsOfStartup = (startupId: string) => this.jobs().filter(j => j.startupId === startupId);
+  appEvent = (id?: string) => (id ? this.events().find(e => e.id === id) : undefined);
+  gift = (id?: string) => (id ? this.gifts.find(g => g.id === id) : undefined);
+  hasApplied = (jobId: string) => this.applications().some(a => a.jobId === jobId && a.applicantId === ME_ID);
 
   /* ---------------- me ---------------- */
   readonly me = computed<Person>(() => this.people().find(p => p.id === ME_ID)!);
@@ -103,6 +128,22 @@ export class Store {
   });
   readonly unreadNotifs = computed(() => this.notifications().filter(n => n.unread).length);
   readonly unreadMsgs = computed(() => this.threads().reduce((n, t) => n + t.unread, 0));
+
+  /* ---------------- new-feature computed ---------------- */
+  readonly liveNow = computed(() => this.livestreams().filter(l => l.status === 'live'));
+  readonly upcomingLives = computed(() => this.livestreams().filter(l => l.status === 'upcoming'));
+  readonly featuredProducts = computed(() => this.products().filter(p => p.featured));
+  readonly myRooms = computed(() => this.rooms().filter(r => r.joined));
+  readonly openJobs = computed(() => this.jobs().filter(j => j.open));
+  readonly upcomingEvents = computed(() =>
+    this.events().slice().sort((a, b) => a.dateSort - b.dateSort));
+
+  /** Wallet balance = everything that came in minus what went out. */
+  readonly walletBalance = computed(() =>
+    this.transactions().reduce((n, t) => n + t.amount, 0));
+  readonly earningsIn = computed(() =>
+    this.transactions().filter(t => t.amount > 0).reduce((n, t) => n + t.amount, 0));
+  readonly myOrders = computed(() => this.orders().filter(o => o.buyerId === ME_ID));
 
   /* ---------------- feed ---------------- */
   /** Home feed: followed founders + followed startups + trending + regional + recommended. */
@@ -509,13 +550,24 @@ export class Store {
     this.save();
   }
 
-  sendMessage(threadId: string, text: string): void {
+  sendMessage(threadId: string, text: string, attachment?: import('./models').ChatAttachment): void {
     this.threads.update(list => list.map(t => t.id === threadId
-      ? { ...t, unread: 0, messages: [...t.messages, { id: 'm_' + ++this.seq, fromId: ME_ID, text, at: 'now' }] }
+      ? {
+          ...t, unread: 0,
+          messages: [...t.messages, { id: 'm_' + ++this.seq, fromId: ME_ID, text, at: 'now', read: false, attachment }],
+        }
       : t));
     this.save();
     const t = this.threads().find(x => x.id === threadId);
     if (!t) return;
+    // the other side "reads" the message shortly after (single -> double tick)
+    setTimeout(() => {
+      this.threads.update(list => list.map(x => x.id === threadId
+        ? { ...x, messages: x.messages.map(m => (m.fromId === ME_ID ? { ...m, read: true } : m)) }
+        : x));
+      this.save();
+    }, 1200);
+    // then a scripted reply lands
     setTimeout(() => {
       this.threads.update(list => list.map(x => x.id === threadId ? {
         ...x,
@@ -541,6 +593,32 @@ export class Store {
     this.save();
   }
 
+  togglePinThread(threadId: string): void {
+    this.threads.update(l => l.map(t => (t.id === threadId ? { ...t, pinned: !t.pinned } : t)));
+    this.save();
+  }
+
+  reactToMessage(threadId: string, messageId: string, emoji: string): void {
+    this.threads.update(l => l.map(t => t.id !== threadId ? t : {
+      ...t,
+      messages: t.messages.map(m => m.id === messageId
+        ? { ...m, reaction: m.reaction === emoji ? undefined : emoji } : m),
+    }));
+    this.save();
+  }
+
+  /** Start (or focus) a 1:1 thread with a person. Returns the thread id. */
+  startThread(withId: string, context = 'Direct message'): string {
+    const existing = this.threads().find(t => t.withId === withId);
+    if (existing) return existing.id;
+    const id = 't_' + ++this.seq;
+    this.threads.update(l => [{
+      id, withId, context, unread: 0, online: Math.random() > 0.5, messages: [],
+    }, ...l]);
+    this.save();
+    return id;
+  }
+
   /* ---------------- copilot ---------------- */
   pushCopilotQuestion(text: string): void {
     this.copilot.update(l => [...l, { id: 'cp_' + ++this.seq, mine: true, text }]);
@@ -554,6 +632,202 @@ export class Store {
     this.save();
   }
   clearCopilot(): void { this.copilot.set([]); this.save(); }
+
+  /* ---------------- transactions (wallet) ---------------- */
+  private addTxn(kind: Transaction['kind'], amount: number, label: string, counterpartyId?: string): void {
+    this.transactions.update(l => [{
+      id: 'tx_' + ++this.seq, kind, amount, currency: this.currency, label, counterpartyId, at: 'now', ts: -this.seq,
+    }, ...l]);
+  }
+
+  /* ---------------- marketplace ---------------- */
+  buyProduct(productId: string, qty = 1, slot?: string): Order | undefined {
+    const p = this.product(productId);
+    if (!p) return undefined;
+    const amount = p.price * qty;
+    const order: Order = {
+      id: 'ord_' + ++this.seq, productId, buyerId: ME_ID, sellerId: p.sellerId,
+      qty, amount, currency: this.currency, status: 'paid', at: 'now', slot,
+    };
+    this.orders.update(l => [order, ...l]);
+    this.products.update(list => list.map(x => x.id === productId
+      ? { ...x, sold: x.sold + qty, stock: x.stock != null ? Math.max(0, x.stock - qty) : x.stock }
+      : x));
+    // if the seller is me, this is income; otherwise it's a purchase (out)
+    if (p.sellerId === ME_ID) this.addTxn('sale', amount, `${p.title} × ${qty}`, ME_ID);
+    else this.addTxn('purchase', -amount, `Bought ${p.title}`, p.sellerId);
+    this.notifications.update(n => [{
+      id: 'n_' + ++this.seq, kind: 'order', actorId: p.sellerId,
+      text: `— your order for ${p.title} is confirmed`, at: 'now', unread: true,
+      meta: 'Simulated purchase · no payment taken',
+    }, ...n]);
+    this.toast(`${p.title} purchased — demo only, no payment was taken`, '🛍️');
+    this.save();
+    return order;
+  }
+
+  addReview(productId: string, rating: number, text: string): void {
+    this.products.update(list => list.map(p => {
+      if (p.id !== productId) return p;
+      const reviews = [{ id: 'prv_' + ++this.seq, authorId: ME_ID, rating, text, at: 'now' }, ...p.reviews];
+      const avg = reviews.reduce((n, r) => n + r.rating, 0) / reviews.length;
+      return { ...p, reviews, rating: Math.round(avg * 10) / 10 };
+    }));
+    this.toast('Review posted', '⭐');
+    this.save();
+  }
+
+  createProduct(input: {
+    type: ProductType; title: string; tagline: string; description: string; price: number;
+    category: string; includes: string[]; emoji: string; stock?: number; slots?: string[]; deliveryNote?: string;
+  }): Product {
+    const s = this.activeStartup();
+    const product: Product = {
+      id: 'pr_new_' + ++this.seq, startupId: s?.id ?? 's_agrix', sellerId: ME_ID,
+      type: input.type, title: input.title, tagline: input.tagline, description: input.description,
+      price: input.price, currency: this.currency, emoji: input.emoji,
+      gradient: s?.gradient ?? 'linear-gradient(135deg,#2b2d42,#4c3fb5)',
+      category: input.category, stock: input.stock, sold: 0, rating: 0, reviews: [],
+      includes: input.includes.filter(Boolean), slots: input.slots, deliveryNote: input.deliveryNote,
+      tags: [], createdByUser: true,
+    };
+    this.products.update(l => [product, ...l]);
+    this.addScore('Product listed', 2);
+    this.toast('Product listed in your storefront', '🏷️');
+    this.save();
+    return product;
+  }
+
+  /* ---------------- donations (tip jar + live gifts) ---------------- */
+  donate(input: {
+    amount: number; toStartupId?: string; toPersonId?: string; message?: string;
+    giftId?: string; source: Donation['source']; anonymous?: boolean;
+  }): void {
+    const donation: Donation = {
+      id: 'dn_' + ++this.seq, fromId: ME_ID, toStartupId: input.toStartupId, toPersonId: input.toPersonId,
+      amount: input.amount, currency: this.currency, message: input.message, giftId: input.giftId,
+      source: input.source, at: 'now', anonymous: input.anonymous,
+    };
+    this.donations.update(l => [donation, ...l]);
+    // a donation from me is money out of my wallet
+    this.addTxn(input.giftId ? 'gift' : 'donation', -input.amount,
+      input.giftId ? `${this.gift(input.giftId)?.label ?? 'Gift'} sent` : 'Donation sent',
+      input.toPersonId ?? input.toStartupId);
+    if (input.toStartupId) {
+      this.startups.update(list => list.map(s => s.id === input.toStartupId
+        ? { ...s, supporters: s.supporters + 1 } : s));
+    }
+    this.toast(`Sent ${input.amount} ${this.currency} — demo only, no payment was taken`, input.giftId ? '🎁' : '💛');
+    this.save();
+  }
+
+  /* ---------------- live ---------------- */
+  sendLiveGift(streamId: string, giftId: string): void {
+    const g = this.gift(giftId);
+    if (!g) return;
+    this.livestreams.update(list => list.map(l => l.id === streamId
+      ? { ...l, raised: l.raised + g.amount, hearts: l.hearts + 1 } : l));
+    const stream = this.livestream(streamId);
+    this.donate({
+      amount: g.amount, toStartupId: stream?.startupId, toPersonId: stream?.hostId,
+      giftId, source: 'live',
+    });
+  }
+
+  heartLive(streamId: string): void {
+    this.livestreams.update(list => list.map(l => l.id === streamId ? { ...l, hearts: l.hearts + 1 } : l));
+  }
+
+  /** append a chat line locally (used for the viewer's own messages and simulated ones) */
+  liveChatLine(line: Omit<LiveChatMessage, 'id'>): LiveChatMessage {
+    return { id: 'lc_' + ++this.seq, ...line };
+  }
+
+  /* ---------------- community chat rooms ---------------- */
+  toggleRoom(roomId: string): void {
+    let joined = false;
+    this.rooms.update(list => list.map(r => {
+      if (r.id !== roomId) return r;
+      joined = !r.joined;
+      const memberIds = joined ? [...new Set([...r.memberIds, ME_ID])] : r.memberIds.filter(id => id !== ME_ID);
+      return { ...r, joined, memberIds, memberCount: r.memberCount + (joined ? 1 : -1) };
+    }));
+    this.toast(joined ? 'Joined the room' : 'Left the room', joined ? '👥' : '👋');
+    this.save();
+  }
+
+  postToRoom(roomId: string, text: string): void {
+    const msg: GroupMessage = { id: 'gm_' + ++this.seq, fromId: ME_ID, text, at: 'now' };
+    this.rooms.update(list => list.map(r => r.id === roomId ? { ...r, messages: [...r.messages, msg] } : r));
+    this.addScore('Community contribution', 1);
+    this.save();
+    // a scripted reply keeps the room feeling alive
+    const room = this.room(roomId);
+    const other = room?.memberIds.find(id => id !== ME_ID && this.person(id)?.role !== 'incubator');
+    if (other) {
+      setTimeout(() => {
+        this.rooms.update(list => list.map(r => r.id === roomId ? {
+          ...r, messages: [...r.messages, {
+            id: 'gm_' + ++this.seq, fromId: other, at: 'now',
+            text: this.roomReply(this.person(other)?.role),
+          }],
+        } : r));
+        this.save();
+      }, 2600);
+    }
+  }
+
+  private roomReply(role?: string): string {
+    if (role === 'expert') return 'Good point. The founders who act on this in the same week are the ones who pull ahead.';
+    if (role === 'founder') return 'Same here — went through this last month. Happy to compare notes.';
+    return 'Thanks for sharing this 🙏';
+  }
+
+  /* ---------------- jobs ---------------- */
+  applyToJob(jobId: string, note: string): void {
+    if (this.hasApplied(jobId)) { this.toast('You already applied to this role', 'ℹ️'); return; }
+    this.applications.update(l => [{
+      id: 'ja_' + ++this.seq, jobId, applicantId: ME_ID, note, at: 'now', status: 'submitted',
+    }, ...l]);
+    this.jobs.update(list => list.map(j => j.id === jobId ? { ...j, applicants: j.applicants + 1 } : j));
+    const job = this.job(jobId);
+    this.notifications.update(n => [{
+      id: 'n_' + ++this.seq, kind: 'job', actorId: job?.posterId ?? ME_ID,
+      text: `received your application for ${job?.title ?? 'the role'}`, at: 'now', unread: true,
+      meta: 'Simulated application',
+    }, ...n]);
+    this.toast('Application submitted', '📨');
+    this.save();
+  }
+
+  postJob(input: {
+    title: string; kind: Job['kind']; location: string; remote: boolean; skills: string[];
+    description: string; pay?: string; equity?: string;
+  }): Job {
+    const s = this.activeStartup();
+    const job: Job = {
+      id: 'job_new_' + ++this.seq, startupId: s?.id ?? 's_agrix', posterId: ME_ID,
+      title: input.title, kind: input.kind, location: input.location, remote: input.remote,
+      skills: input.skills.filter(Boolean), description: input.description, pay: input.pay, equity: input.equity,
+      postedAt: 'now', applicants: 0, open: true,
+    };
+    this.jobs.update(l => [job, ...l]);
+    this.toast('Role posted to the talent board', '💼');
+    this.save();
+    return job;
+  }
+
+  /* ---------------- events ---------------- */
+  toggleEvent(eventId: string): void {
+    let going = false;
+    this.events.update(list => list.map(e => {
+      if (e.id !== eventId) return e;
+      going = !e.going;
+      return { ...e, going, attendees: e.attendees + (going ? 1 : -1) };
+    }));
+    this.toast(going ? 'You are going — added to your calendar' : 'RSVP removed', going ? '📅' : '👋');
+    this.save();
+  }
 
   /* ---------------- score ---------------- */
   addScore(label: string, points: number): void {
@@ -578,7 +852,10 @@ export class Store {
         activeStartupId: this.activeStartupId(), follows: this.follows(), supported: this.supported(),
         seenStories: this.seenStories(), backed: this.backed(), bookings: this.bookings(),
         joinedChallenges: this.joinedChallenges(), scoreEvents: this.scoreEvents(),
-        copilot: this.copilot(), analyses: this.analyses(), onboarded: this.onboarded(), seq: this.seq,
+        copilot: this.copilot(), analyses: this.analyses(), onboarded: this.onboarded(),
+        products: this.products(), livestreams: this.livestreams(), rooms: this.rooms(),
+        jobs: this.jobs(), events: this.events(), orders: this.orders(), donations: this.donations(),
+        transactions: this.transactions(), applications: this.applications(), seq: this.seq,
       }));
     } catch { /* storage unavailable — demo still works in memory */ }
   }
@@ -597,7 +874,18 @@ export class Store {
       this.backed.set(d.backed); this.bookings.set(d.bookings);
       this.joinedChallenges.set(d.joinedChallenges); this.scoreEvents.set(d.scoreEvents);
       this.copilot.set(d.copilot); this.analyses.set(d.analyses);
-      this.onboarded.set(d.onboarded); this.seq = d.seq ?? 0;
+      this.onboarded.set(d.onboarded);
+      // new-feature collections — fall back to seed data for states saved before they existed
+      this.products.set(d.products ?? clone(PRODUCTS));
+      this.livestreams.set(d.livestreams ?? clone(LIVES));
+      this.rooms.set(d.rooms ?? clone(ROOMS));
+      this.jobs.set(d.jobs ?? clone(JOBS));
+      this.events.set(d.events ?? clone(EVENTS));
+      this.orders.set(d.orders ?? []);
+      this.donations.set(d.donations ?? clone(DONATIONS));
+      this.transactions.set(d.transactions ?? clone(TRANSACTIONS));
+      this.applications.set(d.applications ?? []);
+      this.seq = d.seq ?? 0;
     } catch { /* corrupted state — start from the demo dataset */ }
   }
 
@@ -612,6 +900,9 @@ export class Store {
     this.supported.set([]); this.seenStories.set([]); this.backed.set([]); this.bookings.set([]);
     this.joinedChallenges.set(['ch_mvp']); this.scoreEvents.set([]); this.copilot.set([]);
     this.analyses.set([]); this.onboarded.set(false);
+    this.products.set(clone(PRODUCTS)); this.livestreams.set(clone(LIVES)); this.rooms.set(clone(ROOMS));
+    this.jobs.set(clone(JOBS)); this.events.set(clone(EVENTS)); this.orders.set([]);
+    this.donations.set(clone(DONATIONS)); this.transactions.set(clone(TRANSACTIONS)); this.applications.set([]);
     this.toast('Demo reset to its initial state', '🔄');
   }
 }

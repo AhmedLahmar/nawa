@@ -65,6 +65,7 @@ export class Store {
   readonly activeStartupId = signal<string>('s_agrix');
   readonly follows = signal<string[]>(['p_nour', 'p_yassine', 'p_omar', 'org_orbit', 's_sanad', 's_darija', 'e_karim']);
   readonly supported = signal<string[]>([]);
+  readonly supportedVideos = signal<string[]>([]);
   readonly seenStories = signal<string[]>([]);
   readonly backed = signal<{ campaignId: string; amount: number; reward?: string }[]>([]);
   readonly bookings = signal<Booking[]>([]);
@@ -633,6 +634,21 @@ export class Store {
   }
   clearCopilot(): void { this.copilot.set([]); this.save(); }
 
+  /* ---------------- videos (reels) ---------------- */
+  isVideoSupported = (id: string) => this.supportedVideos().includes(id);
+
+  toggleVideoSupport(id: string): void {
+    const on = this.isVideoSupported(id);
+    this.supportedVideos.update(l => (on ? l.filter(x => x !== id) : [...l, id]));
+    this.videos.update(list => list.map(v => v.id === id ? { ...v, supports: v.supports + (on ? -1 : 1) } : v));
+    if (!on) { this.toast('Supported 🚀 — the creator is notified', '🚀'); this.addScore('Community contribution', 1); }
+    this.save();
+  }
+
+  shareVideo(id: string): void {
+    this.toast('Clip link copied — shared to your followers', '🔁');
+  }
+
   /* ---------------- transactions (wallet) ---------------- */
   private addTxn(kind: Transaction['kind'], amount: number, label: string, counterpartyId?: string): void {
     this.transactions.update(l => [{
@@ -666,6 +682,51 @@ export class Store {
     return order;
   }
 
+  /**
+   * Reserve a pre-order product: pay now, receive after the startup ships.
+   * If the product links a campaign, the reservation advances that campaign's
+   * total instead of being counted as a separate wallet sale (no double-count).
+   */
+  preorderProduct(productId: string, qty = 1): Order | undefined {
+    const p = this.product(productId);
+    if (!p || p.type !== 'preorder') return undefined;
+    const amount = p.price * qty;
+    const order: Order = {
+      id: 'ord_' + ++this.seq, productId, buyerId: ME_ID, sellerId: p.sellerId,
+      qty, amount, currency: this.currency, status: 'reserved', at: 'now',
+    };
+    this.orders.update(l => [order, ...l]);
+    this.products.update(list => list.map(x => x.id === productId
+      ? { ...x, sold: x.sold + qty, unitsReserved: (x.unitsReserved ?? 0) + qty }
+      : x));
+
+    if (p.campaignId) {
+      // reservation feeds the linked community round — recorded once, as a campaign contribution
+      this.campaigns.update(list => list.map(c => c.id === p.campaignId
+        ? { ...c, raised: c.raised + amount, backers: c.backers + 1 } : c));
+      const camp = this.campaign(p.campaignId);
+      if (camp) {
+        this.startups.update(list => list.map(s => s.id === camp.startupId
+          ? { ...s, supporters: s.supporters + 1 } : s));
+      }
+      this.addTxn('campaign', p.sellerId === ME_ID ? amount : -amount,
+        `Pre-order — ${p.title} (${camp?.headline ?? 'campaign'})`, p.sellerId);
+    } else {
+      // standalone advance sale flows to the wallet
+      if (p.sellerId === ME_ID) this.addTxn('sale', amount, `Pre-order — ${p.title} × ${qty}`, ME_ID);
+      else this.addTxn('purchase', -amount, `Pre-ordered ${p.title}`, p.sellerId);
+    }
+
+    this.notifications.update(n => [{
+      id: 'n_' + ++this.seq, kind: 'order', actorId: p.sellerId,
+      text: `— your pre-order for ${p.title} is reserved`, at: 'now', unread: true,
+      meta: `${p.estimatedDelivery ?? 'Ships after launch'} · simulated, no payment taken`,
+    }, ...n]);
+    this.toast(`${p.title} reserved — you're charged nothing now (demo)`, '📦');
+    this.save();
+    return order;
+  }
+
   addReview(productId: string, rating: number, text: string): void {
     this.products.update(list => list.map(p => {
       if (p.id !== productId) return p;
@@ -680,6 +741,7 @@ export class Store {
   createProduct(input: {
     type: ProductType; title: string; tagline: string; description: string; price: number;
     category: string; includes: string[]; emoji: string; stock?: number; slots?: string[]; deliveryNote?: string;
+    estimatedDelivery?: string; unitsGoal?: number; campaignId?: string;
   }): Product {
     const s = this.activeStartup();
     const product: Product = {
@@ -689,6 +751,8 @@ export class Store {
       gradient: s?.gradient ?? 'linear-gradient(135deg,#2b2d42,#4c3fb5)',
       category: input.category, stock: input.stock, sold: 0, rating: 0, reviews: [],
       includes: input.includes.filter(Boolean), slots: input.slots, deliveryNote: input.deliveryNote,
+      estimatedDelivery: input.estimatedDelivery, unitsGoal: input.unitsGoal,
+      unitsReserved: input.type === 'preorder' ? 0 : undefined, campaignId: input.campaignId,
       tags: [], createdByUser: true,
     };
     this.products.update(l => [product, ...l]);
@@ -850,6 +914,7 @@ export class Store {
         campaigns: this.campaigns(), roadmaps: this.roadmaps(), challenges: this.challenges(),
         notifications: this.notifications(), threads: this.threads(),
         activeStartupId: this.activeStartupId(), follows: this.follows(), supported: this.supported(),
+        supportedVideos: this.supportedVideos(),
         seenStories: this.seenStories(), backed: this.backed(), bookings: this.bookings(),
         joinedChallenges: this.joinedChallenges(), scoreEvents: this.scoreEvents(),
         copilot: this.copilot(), analyses: this.analyses(), onboarded: this.onboarded(),
@@ -871,6 +936,7 @@ export class Store {
       this.notifications.set(d.notifications); this.threads.set(d.threads);
       this.activeStartupId.set(d.activeStartupId); this.follows.set(d.follows);
       this.supported.set(d.supported); this.seenStories.set(d.seenStories);
+      this.supportedVideos.set(d.supportedVideos ?? []);
       this.backed.set(d.backed); this.bookings.set(d.bookings);
       this.joinedChallenges.set(d.joinedChallenges); this.scoreEvents.set(d.scoreEvents);
       this.copilot.set(d.copilot); this.analyses.set(d.analyses);
@@ -897,7 +963,7 @@ export class Store {
     this.threads.set(clone(THREADS)); this.stories.set(clone(STORIES));
     this.activeStartupId.set('s_agrix');
     this.follows.set(['p_nour', 'p_yassine', 'p_omar', 'org_orbit', 's_sanad', 's_darija', 'e_karim']);
-    this.supported.set([]); this.seenStories.set([]); this.backed.set([]); this.bookings.set([]);
+    this.supported.set([]); this.supportedVideos.set([]); this.seenStories.set([]); this.backed.set([]); this.bookings.set([]);
     this.joinedChallenges.set(['ch_mvp']); this.scoreEvents.set([]); this.copilot.set([]);
     this.analyses.set([]); this.onboarded.set(false);
     this.products.set(clone(PRODUCTS)); this.livestreams.set(clone(LIVES)); this.rooms.set(clone(ROOMS));

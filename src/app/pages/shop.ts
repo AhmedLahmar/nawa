@@ -10,6 +10,7 @@ const TYPE_META: Record<ProductType, { label: string; icon: string; tag: string 
   physical: { label: 'Physical', icon: 'gift', tag: 'tag--seed' },
   digital: { label: 'Digital', icon: 'book', tag: 'tag--brand' },
   service: { label: 'Service', icon: 'cap', tag: 'tag--amber' },
+  preorder: { label: 'Pre-order', icon: 'rocket', tag: 'tag--rose' },
 };
 
 /* ============================================================
@@ -112,6 +113,7 @@ export class ShopPage {
   readonly filter = signal('all');
   readonly filters = [
     { key: 'all', label: 'Everything' },
+    { key: 'preorder', label: '🚀 Pre-orders' },
     { key: 'physical', label: '📦 Physical' },
     { key: 'digital', label: '💾 Digital' },
     { key: 'service', label: '🎧 Services' },
@@ -232,18 +234,41 @@ export class ShopPage {
                 </div>
               }
 
+              @if (p.type === 'preorder') {
+                <div class="panel panel--brand col g-6">
+                  <div class="row g-8"><app-icon name="clock" [size]="14" class="brand-text" /><span class="sm b">{{ p.estimatedDelivery ?? 'Ships after launch' }}</span></div>
+                  <span class="tiny muted">Pay now, receive it once the startup ships. You're not charged in this demo.</span>
+                </div>
+                @if (p.unitsGoal) {
+                  <div class="col g-4">
+                    <div class="row between tiny"><span class="muted">Reserved</span><span class="b">{{ p.unitsReserved ?? 0 }} / {{ p.unitsGoal }}</span></div>
+                    <app-bar [pct]="reservedPct(p)" tone="brand" [thin]="true" />
+                    <span class="tiny faint">{{ spotsLeft(p) }} spots left before production</span>
+                  </div>
+                }
+                @if (p.campaignId && campaign(p.campaignId); as c) {
+                  <a class="tiny link" [routerLink]="['/fund', c.id]">Your reservation funds the community round →</a>
+                }
+              }
+
               <div class="divider"></div>
               <div class="row between sm"><span class="muted">Total</span><span class="b num">{{ fmt.money(total(p), p.currency) }}</span></div>
 
               @if (!bought()) {
-                <button class="btn btn--primary btn--lg btn--block"
-                  [disabled]="(p.type === 'physical' && p.stock === 0) || (p.type === 'service' && !slot())"
-                  (click)="buy(p)">
-                  <app-icon name="wallet" [size]="16" /> {{ p.type === 'service' ? 'Book & pay' : 'Buy now' }}
-                </button>
+                @if (p.type === 'preorder') {
+                  <button class="btn btn--primary btn--lg btn--block" (click)="reserve(p)">
+                    <app-icon name="rocket" [size]="16" /> Reserve yours
+                  </button>
+                } @else {
+                  <button class="btn btn--primary btn--lg btn--block"
+                    [disabled]="(p.type === 'physical' && p.stock === 0) || (p.type === 'service' && !slot())"
+                    (click)="buy(p)">
+                    <app-icon name="wallet" [size]="16" /> {{ p.type === 'service' ? 'Book & pay' : 'Buy now' }}
+                  </button>
+                }
               } @else {
                 <div class="panel panel--seed col g-4">
-                  <div class="row g-8"><app-icon name="check" [size]="16" class="seed-text" /><span class="sm b">Order confirmed</span></div>
+                  <div class="row g-8"><app-icon name="check" [size]="16" class="seed-text" /><span class="sm b">{{ p.type === 'preorder' ? 'Reservation confirmed' : 'Order confirmed' }}</span></div>
                   <span class="tiny muted">{{ confirmMsg(p) }}</span>
                 </div>
                 <a class="btn btn--sm btn--block" routerLink="/wallet">View in wallet</a>
@@ -299,7 +324,17 @@ export class ProductPage {
     this.bought.set(true);
   }
 
+  reserve(p: Product): void {
+    this.store.preorderProduct(p.id, 1);
+    this.bought.set(true);
+  }
+
+  campaign = (id?: string) => this.store.campaign(id);
+  reservedPct = (p: Product) => (p.unitsGoal ? Math.min(100, Math.round(((p.unitsReserved ?? 0) / p.unitsGoal) * 100)) : 0);
+  spotsLeft = (p: Product) => Math.max(0, (p.unitsGoal ?? 0) - (p.unitsReserved ?? 0));
+
   confirmMsg(p: Product): string {
+    if (p.type === 'preorder') return `${p.estimatedDelivery ?? 'Ships after launch'}. You'll be notified when it's on the way.`;
     if (p.type === 'digital') return 'Your download is ready in your wallet (simulated).';
     if (p.type === 'service') return `Booked for ${this.slot()}. The founder will confirm in Messages.`;
     return 'Shipping details would be collected here in a real store.';
@@ -364,6 +399,23 @@ export class ProductPage {
           @if (type() === 'digital') {
             <div class="field"><label>Delivery note</label><input class="input" [(ngModel)]="deliveryNote" placeholder="How the buyer receives it" /></div>
           }
+          @if (type() === 'preorder') {
+            <div class="panel panel--brand row-t g-8">
+              <app-icon name="rocket" [size]="15" class="brand-text" />
+              <span class="tiny">Buyers pay now and receive the product after you ship. Great for funding a first production run.</span>
+            </div>
+            <div class="grid grid-2">
+              <div class="field"><label>Estimated delivery</label><input class="input" [(ngModel)]="estimatedDelivery" placeholder="e.g. Ships Q2 2026" /></div>
+              <div class="field"><label>Units goal before production</label><input class="input num" type="number" min="1" [(ngModel)]="unitsGoal" /></div>
+            </div>
+            @if (myCampaign(); as c) {
+              <label class="row g-8 sm" style="cursor:pointer">
+                <input type="checkbox" [checked]="campaignId === c.id" (change)="campaignId = campaignId === c.id ? '' : c.id" />
+                Send pre-order revenue to my community round <b>"{{ c.headline }}"</b>
+              </label>
+              <span class="tiny faint">If linked, reservations advance your campaign's total instead of your wallet.</span>
+            }
+          }
 
           <div class="field"><label>What's included (one per line)</label><textarea class="textarea" rows="3" [(ngModel)]="includesRaw" placeholder="First thing&#10;Second thing"></textarea></div>
 
@@ -387,6 +439,7 @@ export class SellPage {
     { key: 'physical' as ProductType, label: 'Physical', emoji: '📦' },
     { key: 'digital' as ProductType, label: 'Digital', emoji: '💾' },
     { key: 'service' as ProductType, label: 'Service', emoji: '🎧' },
+    { key: 'preorder' as ProductType, label: 'Pre-order', emoji: '🚀' },
   ];
   readonly type = signal<ProductType>('physical');
 
@@ -400,10 +453,20 @@ export class SellPage {
   slotsRaw = '';
   deliveryNote = '';
   includesRaw = '';
+  estimatedDelivery = '';
+  unitsGoal = 100;
+  campaignId = '';
+
+  /** live campaigns for this founder's active startup, to optionally link a pre-order */
+  readonly myCampaign = computed(() => {
+    const s = this.store.activeStartup();
+    return s ? this.store.campaignOf(s.id) : undefined;
+  });
 
   create(): void {
+    const t = this.type();
     const p = this.store.createProduct({
-      type: this.type(),
+      type: t,
       title: this.title.trim(),
       tagline: this.tagline.trim() || this.title.trim(),
       description: this.description.trim() || this.tagline.trim(),
@@ -411,9 +474,12 @@ export class SellPage {
       category: this.category.trim() || 'General',
       emoji: this.emoji.trim() || '🛍️',
       includes: this.includesRaw.split('\n').map(s => s.trim()).filter(Boolean),
-      stock: this.type() === 'physical' ? Number(this.stock) : undefined,
-      slots: this.type() === 'service' ? this.slotsRaw.split(',').map(s => s.trim()).filter(Boolean) : undefined,
-      deliveryNote: this.type() === 'digital' ? (this.deliveryNote.trim() || undefined) : undefined,
+      stock: t === 'physical' ? Number(this.stock) : undefined,
+      slots: t === 'service' ? this.slotsRaw.split(',').map(s => s.trim()).filter(Boolean) : undefined,
+      deliveryNote: t === 'digital' ? (this.deliveryNote.trim() || undefined) : undefined,
+      estimatedDelivery: t === 'preorder' ? (this.estimatedDelivery.trim() || 'Ships after launch') : undefined,
+      unitsGoal: t === 'preorder' ? Number(this.unitsGoal) || undefined : undefined,
+      campaignId: t === 'preorder' && this.campaignId ? this.campaignId : undefined,
     });
     this.router.navigate(['/shop', p.id]);
   }

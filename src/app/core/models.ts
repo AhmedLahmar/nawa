@@ -398,7 +398,7 @@ export interface IdeaAnalysis {
    MARKETPLACE — products, orders, reviews
    ============================================================ */
 
-export type ProductType = 'physical' | 'digital' | 'service';
+export type ProductType = 'physical' | 'digital' | 'service' | 'preorder';
 
 export interface ProductReview {
   id: string;
@@ -434,12 +434,17 @@ export interface Product {
   slots?: string[];
   /** digital-only: delivery note */
   deliveryNote?: string;
+  /** preorder-only: pay now, receive after the startup ships */
+  estimatedDelivery?: string;   // e.g. "Ships Q2 2026"
+  unitsGoal?: number;           // reservations targeted before production
+  unitsReserved?: number;       // reservations so far
+  campaignId?: string;          // optional: reservations advance this campaign's total
   tags: string[];
   featured?: boolean;
   createdByUser?: boolean;
 }
 
-export type OrderStatus = 'paid' | 'fulfilled' | 'refunded';
+export type OrderStatus = 'paid' | 'fulfilled' | 'refunded' | 'reserved';
 
 export interface Order {
   id: string;

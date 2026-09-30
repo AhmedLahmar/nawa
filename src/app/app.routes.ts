@@ -21,6 +21,9 @@ import { WalletPage } from './pages/wallet';
 import { JobsPage, JobPage, PostJobPage } from './pages/jobs';
 import { EventsPage } from './pages/events';
 import { RoomsPage, RoomPage } from './pages/rooms';
+import { AdminLogin } from './pages/admin-login';
+import { AdminDashboard } from './pages/admin';
+import { adminGuard } from './core/admin-guard';
 
 export const routes: Routes = [
   { path: '', component: Landing, pathMatch: 'full', title: 'Nawa — build your startup in public' },
@@ -78,5 +81,10 @@ export const routes: Routes = [
   },
   // full-screen live viewer sits outside the shell chrome
   { path: 'live/:id', component: LiveViewerPage, title: 'Live · Nawa' },
+
+  // admin console — its own chrome, gated behind a simulated login
+  { path: 'admin/login', component: AdminLogin, title: 'Admin sign in · Nawa' },
+  { path: 'admin', component: AdminDashboard, canActivate: [adminGuard], title: 'Admin console · Nawa' },
+
   { path: '**', redirectTo: '' },
 ];

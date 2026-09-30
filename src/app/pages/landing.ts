@@ -22,6 +22,9 @@ import { fmt, UI } from '../ui/ui';
           <a class="lp-link" href="#who">Who it's for</a>
         </div>
         <div class="grow"></div>
+        <a class="lp-link desktop-only row g-6" routerLink="/admin/login" style="margin-right:4px">
+          <app-icon name="lock" [size]="13" /> Admin
+        </a>
         <a class="btn btn--sm" routerLink="/discover">Explore startups</a>
         <a class="btn btn--primary btn--sm" routerLink="/onboarding">Start Building</a>
       </nav>

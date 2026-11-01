@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ME_ID } from '../core/mock-data';
 import { Store } from '../core/store';
 import { COPILOT_PROMPTS, analyzeIdea, copilotAnswer } from '../core/ai';
 import { IdeaAnalysis } from '../core/models';
@@ -236,9 +237,9 @@ const TABS = [
 
             <div style="padding:0 18px 14px">
               <div class="composer-bar">
-                <input class="input" style="border:0;box-shadow:none;background:transparent" [(ngModel)]="q"
+                <input aria-label="Ask your Copilot" class="input" style="border:0;box-shadow:none;background:transparent" [(ngModel)]="q"
                   placeholder="Ask your Copilot…" (keydown.enter)="ask(q)" />
-                <button class="btn btn--primary btn--icon" [disabled]="!q.trim() || thinking()" (click)="ask(q)">
+                <button type="button" class="btn btn--primary btn--icon" aria-label="Ask Copilot" [disabled]="!q.trim() || thinking()" (click)="ask(q)">
                   <app-icon name="send" [size]="16" />
                 </button>
               </div>
@@ -279,7 +280,7 @@ const TABS = [
                 <h4>Validate an idea</h4>
                 <span class="sm muted">Describe the problem, who has it, and how you would charge. The more specific, the better the read.</span>
               </div>
-              <textarea class="textarea" rows="5" [(ngModel)]="idea"
+              <textarea aria-label="Describe your idea" class="textarea" rows="5" [(ngModel)]="idea"
                 placeholder="e.g. Small grocers in Sfax lose stock because they track inventory on paper. A phone app that scans deliveries and warns before stockouts, 30 TND/month."></textarea>
               <div class="row between wrap g-10">
                 <span class="mock-note"><app-icon name="lock" [size]="11" /> Simulated analysis — offline, deterministic</span>
@@ -419,7 +420,8 @@ const TABS = [
 
               @for (ph of rm.phases; track ph.id) {
                 <div class="phase">
-                  <div class="phase__h" (click)="togglePhase(ph.id)">
+                  <div class="phase__h" role="button" tabindex="0" [attr.aria-expanded]="isOpen(ph.id)"
+                    (click)="togglePhase(ph.id)" (keydown.enter)="togglePhase(ph.id)" (keydown.space)="$event.preventDefault(); togglePhase(ph.id)">
                     <span class="tag" [class.tag--seed]="phasePct(ph.tasks) === 100">{{ phaseDone(ph.tasks) }}/{{ ph.tasks.length }}</span>
                     <span class="grow col g-4">
                       <span class="b sm">{{ ph.name }}</span>
@@ -534,23 +536,23 @@ const TABS = [
                 <div class="card__body col g-16">
                   @if (cstep() === 1) {
                     <div class="field">
-                      <label>Headline</label>
-                      <input class="input" [(ngModel)]="headline" placeholder="Help us put {{ s.name }} in 100 more hands" />
+                      <label for="f-build-1">Headline</label>
+                      <input id="f-build-1" class="input" [(ngModel)]="headline" placeholder="Help us put {{ s.name }} in 100 more hands" />
                     </div>
                     <div class="field">
-                      <label>Why now</label>
-                      <textarea class="textarea" rows="4" [(ngModel)]="pitch"
+                      <label for="f-build-2">Why now</label>
+                      <textarea id="f-build-2" class="textarea" rows="4" [(ngModel)]="pitch"
                         placeholder="What you have proven so far, what the money unlocks, and what supporters get."></textarea>
                       <span class="hint">Your journey is the pitch — {{ myPosts().length }} public updates already back this up.</span>
                     </div>
                     <div class="grid grid-2">
                       <div class="field">
-                        <label>Goal ({{ store.currency }})</label>
-                        <input class="input num" type="number" min="1000" step="500" [(ngModel)]="goal" />
+                        <label for="f-build-3">Goal ({{ store.currency }})</label>
+                        <input id="f-build-3" class="input num" type="number" min="1000" step="500" [(ngModel)]="goal" />
                       </div>
                       <div class="field">
-                        <label>Duration (days)</label>
-                        <select class="select" [(ngModel)]="days">
+                        <label for="f-build-4">Duration (days)</label>
+                        <select id="f-build-4" class="select" [(ngModel)]="days">
                           @for (d of [14, 21, 30, 45]; track d) { <option [value]="d">{{ d }} days</option> }
                         </select>
                       </div>
@@ -579,10 +581,10 @@ const TABS = [
                       @for (r of rewards; track r.id) {
                         <div class="panel col g-8">
                           <div class="row g-10">
-                            <input class="input" [(ngModel)]="r.title" style="flex:2" />
+                            <input aria-label="Reward title" class="input" [(ngModel)]="r.title" style="flex:2" />
                             <input class="input num" type="number" step="10" [(ngModel)]="r.amount" style="width:104px" />
                           </div>
-                          <input class="input" [(ngModel)]="r.desc" placeholder="What the supporter gets" />
+                          <input aria-label="What the supporter gets" class="input" [(ngModel)]="r.desc" placeholder="What the supporter gets" />
                         </div>
                       }
                       <span class="mock-note"><app-icon name="lock" [size]="11" /> Rewards are illustrative — nothing is charged or shipped</span>
@@ -652,8 +654,6 @@ const TABS = [
     </div>
   `,
   styles: [`
-    .wsgrid { display: grid; grid-template-columns: minmax(0, 1fr) 304px; gap: 16px; align-items: start; }
-    @media (max-width: 1020px) { .wsgrid { grid-template-columns: 1fr; } }
   `],
 })
 export class BuildPage {
@@ -675,7 +675,7 @@ export class BuildPage {
     const s = this.s();
     return s ? this.store.campaignOf(s.id) : undefined;
   });
-  readonly myPosts = computed(() => this.store.postsBy('u_me'));
+  readonly myPosts = computed(() => this.store.postsBy(ME_ID));
   readonly sName = computed(() => this.s()?.name ?? 'your idea');
   readonly sDay = computed(() => this.s()?.day ?? 1);
   readonly sFollowers = computed(() => this.s()?.followers ?? 0);

@@ -2,6 +2,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Post, PostType } from '../core/models';
+import { ME_ID } from '../core/mock-data';
 import { Store } from '../core/store';
 import { fmt, UI } from '../ui/ui';
 
@@ -171,7 +172,7 @@ const TYPE_META: Record<PostType, { label: string; tag: string; icon: string }> 
           }
           @default {
             @if (author(); as a) {
-              @if (a.id !== 'u_me') {
+              @if (a.id !== meId) {
                 <button class="btn btn--sm" (click)="store.toggleFollow(a.id, a.name)">
                   @if (store.isFollowing(a.id)) { Following } @else { <app-icon name="plus" [size]="14" /> Follow }
                 </button>
@@ -216,9 +217,9 @@ const TYPE_META: Record<PostType, { label: string; tag: string; icon: string }> 
       @if (open()) {
         <div class="comment">
           <app-av [name]="store.me().name" [size]="30" />
-          <input class="input" placeholder="Add specific, useful feedback…"
+          <input aria-label="Write feedback" class="input" placeholder="Add specific, useful feedback…"
             [(ngModel)]="draft" (keydown.enter)="send()" />
-          <button class="btn btn--primary btn--icon" [disabled]="!draft.trim()" (click)="send()">
+          <button type="button" class="btn btn--primary btn--icon" aria-label="Post comment" [disabled]="!draft.trim()" (click)="send()">
             <app-icon name="send" [size]="16" />
           </button>
         </div>
@@ -239,6 +240,7 @@ export class PostCard {
   readonly store = inject(Store);
   private router = inject(Router);
   readonly fmt = fmt;
+  readonly meId = ME_ID;
 
   readonly open = signal(false);
   readonly vote = signal<number | null>(null);

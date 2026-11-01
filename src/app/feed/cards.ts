@@ -258,7 +258,8 @@ export class ChallengeCard {
   imports: [UI],
   template: `
     @if (v(); as v) {
-      <div class="reel" (click)="clicked()">
+      <div class="reel" role="button" tabindex="0" [attr.aria-label]="'Play ' + v.title"
+        (click)="clicked()" (keydown.enter)="clicked()" (keydown.space)="$event.preventDefault(); clicked()">
         <app-media [emoji]="v.emoji" [caption]="''" [gradient]="v.gradient" ratio="9x16"
           [play]="true" [duration]="v.duration" />
         <div class="reel__grad"></div>

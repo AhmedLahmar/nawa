@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ME_ID } from '../core/mock-data';
 import { Store } from '../core/store';
 import { CARDS } from '../feed/cards';
 import { PostCard } from '../feed/post-card';
@@ -275,7 +276,7 @@ export class PersonPage {
     const handle = this.params()?.get('handle');
     return handle ? this.store.personByHandle(handle) : this.store.me();
   });
-  readonly isMe = computed(() => this.p()?.id === 'u_me');
+  readonly isMe = computed(() => this.p()?.id === ME_ID);
   readonly score = computed(() => (this.isMe() ? this.store.myScore() : this.p()?.founderScore ?? 0));
   readonly factors = computed(() => this.p()?.scoreFactors ?? []);
   readonly startups = computed(() => {

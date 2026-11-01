@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ME_ID } from '../core/mock-data';
 import { Store } from '../core/store';
 import { fmt, UI } from '../ui/ui';
 
@@ -8,7 +9,7 @@ import { fmt, UI } from '../ui/ui';
   standalone: true,
   imports: [RouterLink, UI],
   template: `
-    <div class="dark">
+    <div class="lp">
       <!-- ---------------- nav ---------------- -->
       <nav class="lp-nav">
         <a class="row g-9" routerLink="/">
@@ -313,13 +314,10 @@ import { fmt, UI } from '../ui/ui';
     </div>
   `,
   styles: [`
-    .mark { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
-      background: linear-gradient(140deg, #14b87a, #5a46f0 120%); font-size: 15px; flex: none; }
     .lp-link { font-size: 13.5px; font-weight: 540; color: var(--muted); }
     .lp-link:hover { color: var(--ink); }
     .panel-dark { background: var(--canvas-2); border: 1px solid var(--line);
       border-radius: 12px; padding: 12px 14px; }
-    .g-9 { gap: 9px } .g-18 { gap: 18px }
   `],
 })
 export class Landing {
@@ -327,7 +325,7 @@ export class Landing {
   readonly fmt = fmt;
 
   readonly agrix = computed(() => this.store.startupBySlug('agrix'));
-  readonly founder = computed(() => this.store.person('u_me'));
+  readonly founder = computed(() => this.store.person(ME_ID));
   readonly campaign = computed(() => {
     const s = this.agrix();
     return s ? this.store.campaignOf(s.id) : undefined;

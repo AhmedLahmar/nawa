@@ -250,8 +250,6 @@ interface Stat {
       gap: 10px; padding: 0 clamp(14px, 3vw, 28px); background: var(--surface);
       border-bottom: 1px solid var(--line); }
     .adm__wrap { max-width: 1120px; margin: 0 auto; padding: clamp(18px, 3vw, 30px) clamp(14px, 3vw, 28px) 40px; }
-    .mark { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
-      background: linear-gradient(140deg, #14b87a, #5a46f0 120%); font-size: 15px; flex: none; }
 
     .adm__stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
     .stat { padding: 16px; display: flex; flex-direction: column; gap: 4px; }

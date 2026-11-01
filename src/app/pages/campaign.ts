@@ -253,32 +253,26 @@ import { fmt, UI } from '../ui/ui';
 
       <!-- ============ simulated support modal ============ -->
       @if (modal()) {
-        <div class="modal-scrim" (click)="close()">
-          <div class="modal" (click)="$event.stopPropagation()">
+        <app-dialog [title]="done() ? 'You are in 🚀' : 'Support ' + (s()?.name ?? '')"
+          [subtitle]="done() ? '' : 'Choose an amount — this is a simulation, nothing is charged.'" (close)="close()">
             @if (!done()) {
-              <div class="modal__h">
-                <div class="col g-4">
-                  <h3>Support {{ s()?.name }}</h3>
-                  <span class="tiny muted">Choose an amount — this is a simulation, nothing is charged.</span>
-                </div>
-                <button class="btn btn--icon btn--sm" (click)="close()"><app-icon name="x" [size]="15" /></button>
-              </div>
-              <div class="modal__b col g-16">
-                <div class="row g-8 wrap">
+              <div class="col g-16">
+                <div class="row g-8 wrap" role="group" aria-label="Preset amounts">
                   @for (a of presets; track a) {
-                    <button class="chip" [class.chip--on]="amount === a" (click)="amount = a">{{ a }} {{ c.currency }}</button>
+                    <button type="button" class="chip" [class.chip--on]="amount === a" [attr.aria-pressed]="amount === a" (click)="amount = a">{{ a }} {{ c.currency }}</button>
                   }
                 </div>
                 <div class="field">
-                  <label>Amount ({{ c.currency }})</label>
-                  <input class="input num" type="number" min="10" step="10" [(ngModel)]="amount" />
+                  <label for="cp-amount">Amount ({{ c.currency }})</label>
+                  <input id="cp-amount" class="input num" type="number" min="10" step="10" [(ngModel)]="amount" />
                   <span class="hint">{{ tierHint(c.rewards) }}</span>
                 </div>
                 <div class="field">
-                  <label>Reward tier</label>
-                  <div class="col g-8">
+                  <span class="up faint" id="cp-tier-l">Reward tier</span>
+                  <div class="col g-8" role="group" aria-labelledby="cp-tier-l">
                     @for (r of c.rewards; track r.id) {
-                      <button class="prompt-chip" [style.border-color]="picked()?.id === r.id ? 'var(--brand-500)' : ''"
+                      <button type="button" class="prompt-chip" [style.border-color]="picked()?.id === r.id ? 'var(--brand-500)' : ''"
+                        [attr.aria-pressed]="picked()?.id === r.id"
                         (click)="pick(r)">
                         <b>{{ r.title }}</b> · {{ fmt.money(r.amount, c.currency) }}<br />{{ r.desc }}
                       </button>
@@ -286,26 +280,26 @@ import { fmt, UI } from '../ui/ui';
                   </div>
                 </div>
                 <div class="row between">
-                  <span class="sm">Show my name on the supporters wall</span>
-                  <button class="switch" [class.on]="showName()" (click)="showName.set(!showName())"></button>
+                  <span class="sm" id="cp-wall-l">Show my name on the supporters wall</span>
+                  <button type="button" class="switch" role="switch" [class.on]="showName()" [attr.aria-checked]="showName()"
+                    aria-labelledby="cp-wall-l" (click)="showName.set(!showName())"></button>
                 </div>
                 <div class="mockbar" style="border-radius:10px;border:1px dashed var(--line)">
                   <app-icon name="shield" [size]="12" /> No card details are collected. This demo never processes payments.
                 </div>
               </div>
-              <div class="modal__f">
-                <button class="btn" (click)="close()">Cancel</button>
-                <button class="btn btn--seed" [disabled]="!amount || amount < 10" (click)="confirm()">
+              <div class="row g-10 mt-16" style="justify-content:flex-end">
+                <button type="button" class="btn" (click)="close()">Cancel</button>
+                <button type="button" class="btn btn--seed" [disabled]="!amount || amount < 10" (click)="confirm()">
                   <app-icon name="rocket" [size]="15" /> Complete simulated support
                 </button>
               </div>
             } @else {
-              <div class="modal__b col g-16 center" style="align-items:center;text-align:center">
+              <div class="col g-16 center" style="align-items:center;text-align:center">
                 <div class="empty__ic" style="background:var(--seed-100);color:var(--seed-600)">
                   <app-icon name="check" [size]="26" [weight]="2.6" />
                 </div>
                 <div class="col g-6">
-                  <h3>You are in 🚀</h3>
                   <span class="sm muted">
                     {{ amount }} {{ c.currency }} recorded as simulated support for {{ s()?.name }}.
                     You now get every update from the build.
@@ -317,13 +311,12 @@ import { fmt, UI } from '../ui/ui';
                   <div class="row between tiny"><span class="muted">Payment</span><span class="b amber-text">not processed (demo)</span></div>
                 </div>
                 <div class="row g-8">
-                  <button class="btn" (click)="close()">Stay on the page</button>
+                  <button type="button" class="btn" (click)="close()">Stay on the page</button>
                   <a class="btn btn--primary" routerLink="/home" (click)="close()">Back to feed</a>
                 </div>
               </div>
             }
-          </div>
-        </div>
+        </app-dialog>
       }
     } @else {
       <div class="page">

@@ -61,7 +61,8 @@ const FILTERS = [
       <div class="card" style="overflow:hidden">
         @if (list().length) {
           @for (n of list(); track n.id) {
-            <div class="notif" [class.unread]="n.unread" (click)="go(n.link)">
+            <div class="notif" [class.unread]="n.unread" [attr.role]="n.link ? 'link' : null" [attr.tabindex]="n.link ? 0 : null"
+              (click)="go(n.link)" (keydown.enter)="go(n.link)">
               <div class="notif__ic" [style.background]="meta(n.kind).bg" [style.color]="meta(n.kind).fg">
                 <app-icon [name]="meta(n.kind).icon" [size]="17" />
               </div>

@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PostType } from '../core/models';
+import { ME_ID } from '../core/mock-data';
 import { Store } from '../core/store';
 import { CARDS } from '../feed/cards';
 import { Composer } from '../feed/composer';
@@ -194,7 +195,7 @@ export class Home {
 
   readonly suggested = computed(() =>
     this.store.people()
-      .filter(p => p.role === 'founder' && p.id !== 'u_me' && !this.store.isFollowing(p.id))
+      .filter(p => p.role === 'founder' && p.id !== ME_ID && !this.store.isFollowing(p.id))
       .slice(0, 4));
 
   readonly challenge = computed(() => this.store.challenges().find(c => c.joined) ?? this.store.challenges()[0]);

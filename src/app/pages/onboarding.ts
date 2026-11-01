@@ -45,21 +45,21 @@ const CITIES = ['Tunis', 'Sfax', 'Sousse', 'Monastir', 'Bizerte', 'Casablanca', 
               </div>
               <div class="grid grid-2">
                 <div class="field">
-                  <label>Your name</label>
-                  <input class="input" [(ngModel)]="name" placeholder="Ahmed Ben Ali" />
+                  <label for="f-onboarding-1">Your name</label>
+                  <input id="f-onboarding-1" class="input" [(ngModel)]="name" placeholder="Ahmed Ben Ali" />
                 </div>
                 <div class="field">
-                  <label>City</label>
-                  <select class="select" [(ngModel)]="city">
+                  <label for="f-onboarding-2">City</label>
+                  <select id="f-onboarding-2" class="select" [(ngModel)]="city">
                     @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
                   </select>
                 </div>
               </div>
               <div class="field">
-                <label>What describes you best?</label>
-                <div class="row g-8 wrap">
+                <label id="ob-role-l">What describes you best?</label>
+                <div class="row g-8 wrap" role="group" aria-labelledby="ob-role-l">
                   @for (r of roleOptions; track r.key) {
-                    <button class="chip" [class.chip--on]="role() === r.key" (click)="role.set(r.key)">
+                    <button type="button" class="chip" [class.chip--on]="role() === r.key" [attr.aria-pressed]="role() === r.key" (click)="role.set(r.key)">
                       {{ r.emoji }} {{ r.label }}
                     </button>
                   }
@@ -95,7 +95,7 @@ const CITIES = ['Tunis', 'Sfax', 'Sousse', 'Monastir', 'Bizerte', 'Casablanca', 
                   The more specific you are, the more useful Copilot's validation gets.
                 </p>
               </div>
-              <textarea class="textarea" rows="6" [(ngModel)]="idea"
+              <textarea aria-label="Describe your idea" class="textarea" rows="6" [(ngModel)]="idea"
                 placeholder="I want to build …"></textarea>
               <div class="col g-8">
                 <span class="up faint">Or start from an example</span>
@@ -294,19 +294,19 @@ const CITIES = ['Tunis', 'Sfax', 'Sousse', 'Monastir', 'Bizerte', 'Casablanca', 
                 </div>
                 <div class="grid grid-2">
                   <div class="field">
-                    <label>Startup name</label>
-                    <input class="input" [(ngModel)]="startupName" />
+                    <label for="f-onboarding-3">Startup name</label>
+                    <input id="f-onboarding-3" class="input" [(ngModel)]="startupName" />
                   </div>
                   <div class="field">
-                    <label>Based in</label>
-                    <select class="select" [(ngModel)]="city">
+                    <label for="f-onboarding-4">Based in</label>
+                    <select id="f-onboarding-4" class="select" [(ngModel)]="city">
                       @for (c of cities; track c) { <option [value]="c">{{ c }}</option> }
                     </select>
                   </div>
                 </div>
                 <div class="field">
-                  <label>One-line pitch</label>
-                  <input class="input" [(ngModel)]="tagline" />
+                  <label for="f-onboarding-5">One-line pitch</label>
+                  <input id="f-onboarding-5" class="input" [(ngModel)]="tagline" />
                 </div>
                 <div class="panel row g-12">
                   <button class="switch" [class.on]="bip()" (click)="bip.set(!bip())"></button>
@@ -344,8 +344,8 @@ const CITIES = ['Tunis', 'Sfax', 'Sousse', 'Monastir', 'Bizerte', 'Casablanca', 
                   </span>
                 </div>
                 <div class="field">
-                  <label>Your first Build in Public update</label>
-                  <textarea class="textarea" rows="5" [(ngModel)]="firstPost"></textarea>
+                  <label for="f-onboarding-6">Your first Build in Public update</label>
+                  <textarea id="f-onboarding-6" class="textarea" rows="5" [(ngModel)]="firstPost"></textarea>
                   <span class="hint">Founders who publish in their first 24 hours are 3× more likely to still be publishing on Day 30 (demo statistic).</span>
                 </div>
                 <div class="row between wrap g-12">
@@ -370,9 +370,6 @@ const CITIES = ['Tunis', 'Sfax', 'Sousse', 'Monastir', 'Bizerte', 'Casablanca', 
     .ob__body { padding: clamp(12px, 3vw, 34px) clamp(14px, 4vw, 34px) 70px; display: flex; justify-content: center; }
     .ob__card { width: min(680px, 100%); }
     .ob__wide { width: min(1080px, 100%); }
-    .mark { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
-      background: linear-gradient(140deg, #14b87a, #5a46f0 120%); font-size: 15px; flex: none; }
-    .g-9 { gap: 9px }
   `],
 })
 export class Onboarding {

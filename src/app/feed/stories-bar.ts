@@ -10,7 +10,8 @@ import { UI } from '../ui/ui';
   template: `
     <div class="card pad-sm">
       <div class="stories">
-        <div class="story story--add" (click)="add()">
+        <div class="story story--add" role="button" tabindex="0" aria-label="Add your story"
+          (click)="add()" (keydown.enter)="add()" (keydown.space)="$event.preventDefault(); add()">
           <div class="story__ring">
             <div class="story__inner" style="display:grid;place-items:center;background:var(--brand-50);color:var(--brand-600)">
               <app-icon name="plus" [size]="22" [weight]="2.2" />
@@ -20,7 +21,9 @@ import { UI } from '../ui/ui';
         </div>
 
         @for (g of store.stories(); track g.id; let i = $index) {
-          <div class="story" (click)="open(i)">
+          <div class="story" role="button" tabindex="0"
+            [attr.aria-label]="'Open story from ' + (store.person(g.authorId)?.name ?? '') + (store.isStorySeen(g.id) ? ' (seen)' : '')"
+            (click)="open(i)" (keydown.enter)="open(i)" (keydown.space)="$event.preventDefault(); open(i)">
             <div class="story__ring" [class.story__ring--seen]="store.isStorySeen(g.id)">
               <div class="story__inner">
                 <app-av [name]="store.person(g.authorId)?.name ?? ''" [size]="63"

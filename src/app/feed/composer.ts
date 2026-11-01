@@ -47,7 +47,7 @@ const TYPES: TypeDef[] = [
                 }
               </div>
             </div>
-            <button class="btn btn--ghost btn--icon btn--sm" (click)="cancel()"><app-icon name="x" [size]="16" /></button>
+            <button type="button" class="btn btn--ghost btn--icon btn--sm" aria-label="Close composer" (click)="cancel()"><app-icon name="x" [size]="16" /></button>
           </div>
 
           <div class="row g-6 scroll-x">
@@ -58,7 +58,7 @@ const TYPES: TypeDef[] = [
             }
           </div>
 
-          <textarea class="textarea" [placeholder]="def().placeholder" [(ngModel)]="text" rows="4"></textarea>
+          <textarea aria-label="Update text" class="textarea" [placeholder]="def().placeholder" [(ngModel)]="text" rows="4"></textarea>
 
           <div class="row g-6 tiny faint">
             <app-icon name="bulb" [size]="13" class="brand-text" /> {{ def().tip }}
@@ -71,15 +71,15 @@ const TYPES: TypeDef[] = [
                 <span class="sm b" style="display:block">{{ mediaLabel() }}</span>
                 <span class="tiny faint">Attachment is represented visually in this demo — no upload happens.</span>
               </span>
-              <button class="btn btn--ghost btn--icon btn--sm" (click)="media.set(null)"><app-icon name="x" [size]="15" /></button>
+              <button type="button" class="btn btn--ghost btn--icon btn--sm" aria-label="Remove attachment" (click)="media.set(null)"><app-icon name="x" [size]="15" /></button>
             </div>
           }
 
           @if (poll()) {
             <div class="panel col g-8">
-              <input class="input" placeholder="Poll question" [(ngModel)]="pollQ" />
+              <input aria-label="Poll question" class="input" placeholder="Poll question" [(ngModel)]="pollQ" />
               @for (o of pollOpts; track $index; let i = $index) {
-                <input class="input" [placeholder]="'Option ' + (i + 1)" [(ngModel)]="pollOpts[i]" />
+                <input [attr.aria-label]="'Poll option ' + (i + 1)" class="input" [placeholder]="'Option ' + (i + 1)" [(ngModel)]="pollOpts[i]" />
               }
               <button class="btn btn--sm" (click)="pollOpts.push('')" [disabled]="pollOpts.length >= 4">
                 <app-icon name="plus" [size]="13" /> Add option

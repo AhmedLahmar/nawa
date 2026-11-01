@@ -2,7 +2,7 @@
    NAWA — UI primitives (icons, avatars, media, charts, meters)
    ============================================================ */
 
-import { Component, computed, input } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, computed, input, output, viewChild } from '@angular/core';
 import { Stage } from '../core/models';
 
 /* ------------------------------------------------------------
@@ -73,6 +73,10 @@ const ICONS: Record<string, string[]> = {
   wallet: ['M3.5 7.5A1.5 1.5 0 0 1 5 6h13a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 18 19H5a1.5 1.5 0 0 1-1.5-1.5z', 'M16 11.5h4.5v3.5H16a1.8 1.8 0 0 1 0-3.5z'],
   logout: ['M9 21H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4', 'M16 8l4 4-4 4', 'M20 12H9'],
   minus: ['M5 12h14'],
+  bag: ['M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z', 'M9 10V7a3 3 0 0 1 6 0v3'],
+  code: ['m8 8-4 4 4 4', 'm16 8 4 4-4 4', 'M13.5 5.5l-3 13'],
+  branch: ['M6 4v10', 'M6 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4', 'M18 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4', 'M18 10c0 4-6 3.5-11.4 6.4'],
+  download: ['M12 4v11', 'm7.5 10.5 4.5 4.5 4.5-4.5', 'M5 20h14'],
   sun: ['M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15', 'M12 1.5v2', 'M12 20.5v2', 'M1.5 12h2', 'M20.5 12h2', 'M4.5 4.5l1.4 1.4', 'M18.1 18.1l1.4 1.4', 'M19.5 4.5l-1.4 1.4', 'M5.9 18.1l-1.4 1.4'],
   moon: ['M20 13.4A8 8 0 1 1 10.6 4a6.4 6.4 0 0 0 9.4 9.4z'],
 };
@@ -398,9 +402,75 @@ export class Empty {
 }
 
 /* ------------------------------------------------------------
+   Dialog — accessible modal shell
+   role="dialog" + aria-modal, labelled title, Escape closes,
+   focus moves in, Tab is trapped, focus returns on close.
+   ------------------------------------------------------------ */
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+let dialogSeq = 0;
+
+@Component({
+  selector: 'app-dialog',
+  standalone: true,
+  imports: [Icon],
+  template: `
+    <div class="modal-scrim" (click)="close.emit()">
+      <div #panel class="modal" [class.modal--wide]="wide()" role="dialog" aria-modal="true"
+        [attr.aria-labelledby]="titleId" [attr.aria-describedby]="subtitle() ? descId : null" tabindex="-1"
+        (click)="$event.stopPropagation()" (keydown)="onKey($event)">
+        <div class="modal__h">
+          <div class="col g-4" style="min-width:0">
+            <h2 [id]="titleId" style="font-size:16.5px">{{ title() }}</h2>
+            @if (subtitle()) { <p [id]="descId" class="tiny muted">{{ subtitle() }}</p> }
+          </div>
+          <button type="button" class="btn btn--ghost btn--icon btn--sm" aria-label="Close dialog" (click)="close.emit()">
+            <app-icon name="x" [size]="16" />
+          </button>
+        </div>
+        <div class="modal__b"><ng-content /></div>
+      </div>
+    </div>`,
+})
+export class Dialog implements AfterViewInit, OnDestroy {
+  readonly title = input.required<string>();
+  readonly subtitle = input<string>('');
+  readonly wide = input<boolean>(false);
+  readonly close = output<void>();
+
+  private readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');
+  private readonly id = ++dialogSeq;
+  readonly titleId = `dlg-t-${this.id}`;
+  readonly descId = `dlg-d-${this.id}`;
+  private returnTo: HTMLElement | null = null;
+
+  ngAfterViewInit(): void {
+    this.returnTo = document.activeElement as HTMLElement | null;
+    const el = this.panel().nativeElement;
+    // prefer the first control in the body over the close button
+    const first = el.querySelector<HTMLElement>(`.modal__b ${FOCUSABLE.split(', ').join(', .modal__b ')}`);
+    (first ?? el).focus();
+  }
+
+  ngOnDestroy(): void {
+    if (this.returnTo && document.contains(this.returnTo)) this.returnTo.focus();
+  }
+
+  onKey(e: KeyboardEvent): void {
+    if (e.key === 'Escape') { e.stopPropagation(); this.close.emit(); return; }
+    if (e.key !== 'Tab') return;
+    const nodes = Array.from(this.panel().nativeElement.querySelectorAll<HTMLElement>(FOCUSABLE))
+      .filter(n => n.offsetParent !== null);
+    if (!nodes.length) return;
+    const first = nodes[0], last = nodes[nodes.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+}
+
+/* ------------------------------------------------------------
    Convenience bundle
    ------------------------------------------------------------ */
-export const UI = [Icon, Avatar, Media, Sparkline, Chart, ScoreRing, Donut, StageTracker, Bar, Empty] as const;
+export const UI = [Icon, Avatar, Media, Sparkline, Chart, ScoreRing, Donut, StageTracker, Bar, Empty, Dialog] as const;
 
 /* ---------------- formatting helpers ---------------- */
 export const fmt = {

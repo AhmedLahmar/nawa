@@ -39,13 +39,16 @@ const REACTIONS = ['👍', '❤️', '🚀', '😂', '🙏'];
             </div>
             <div class="searchbar">
               <app-icon name="search" [size]="15" />
-              <input class="input" placeholder="Search conversations" [ngModel]="q()" (ngModelChange)="q.set($event)"
+              <input aria-label="Search conversations" class="input" placeholder="Search conversations" [ngModel]="q()" (ngModelChange)="q.set($event)"
                 style="border:0;box-shadow:none;background:transparent" />
             </div>
           </div>
           <div class="col" style="padding:6px">
             @for (t of threads(); track t.id) {
-              <div class="thread-i" [class.on]="t.id === activeId()" (click)="open(t.id)">
+              <div class="thread-i" [class.on]="t.id === activeId()" role="button" tabindex="0"
+                [attr.aria-current]="t.id === activeId() ? 'true' : null"
+                [attr.aria-label]="name(t.withId) + (t.unread ? ', ' + t.unread + ' unread' : '') + '. ' + preview(t)"
+                (click)="open(t.id)" (keydown.enter)="open(t.id)" (keydown.space)="$event.preventDefault(); open(t.id)">
                 <div class="rel" style="flex:none">
                   <app-av [name]="name(t.withId)" [size]="44" [verified]="verified(t.withId)" />
                   @if (t.online) { <span class="presence"></span> }
@@ -75,7 +78,7 @@ const REACTIONS = ['👍', '❤️', '🚀', '😂', '🙏'];
           <div class="card mchat" [class.mchat--hidden]="!mobileChat()">
             <div class="card__head" style="padding:11px 14px">
               <div class="row g-10" style="min-width:0">
-                <button class="btn btn--icon btn--xs mobile-only" (click)="mobileChat.set(false)">
+                <button type="button" class="btn btn--icon btn--xs mobile-only" aria-label="Back to conversations" (click)="mobileChat.set(false)">
                   <app-icon name="chevR" [size]="14" style="transform:rotate(180deg)" />
                 </button>
                 <div class="rel" style="flex:none">
@@ -90,11 +93,11 @@ const REACTIONS = ['👍', '❤️', '🚀', '😂', '🙏'];
                 </div>
               </div>
               <div class="row g-6">
-                <button class="btn btn--icon btn--xs" (click)="store.togglePinThread(t.id)"
+                <button type="button" class="btn btn--icon btn--xs" [attr.aria-label]="t.pinned ? 'Unpin conversation' : 'Pin conversation'" [attr.aria-pressed]="!!t.pinned" (click)="store.togglePinThread(t.id)"
                   [title]="t.pinned ? 'Unpin' : 'Pin'">
                   <app-icon name="bookmark" [size]="15" [style.color]="t.pinned ? 'var(--brand-600)' : ''" />
                 </button>
-                <button class="btn btn--icon btn--xs" (click)="store.toast('Calls are not part of this demo', '📞')">
+                <button type="button" class="btn btn--icon btn--xs" aria-label="Start a video call" (click)="store.toast('Calls are not part of this demo', '📞')">
                   <app-icon name="video" [size]="15" />
                 </button>
               </div>
@@ -148,7 +151,7 @@ const REACTIONS = ['👍', '❤️', '🚀', '😂', '🙏'];
                 <div class="panel row g-8">
                   <span style="font-size:18px">{{ attachment()!.emoji }}</span>
                   <span class="sm grow">{{ attachment()!.label }}</span>
-                  <button class="btn btn--ghost btn--icon btn--xs" (click)="attachment.set(null)"><app-icon name="x" [size]="14" /></button>
+                  <button type="button" class="btn btn--ghost btn--icon btn--xs" aria-label="Remove attachment" (click)="attachment.set(null)"><app-icon name="x" [size]="14" /></button>
                 </div>
               }
               <div class="scroll-x row g-6">
@@ -157,11 +160,11 @@ const REACTIONS = ['👍', '❤️', '🚀', '😂', '🙏'];
                 }
               </div>
               <div class="composer-bar">
-                <button class="btn btn--ghost btn--icon btn--sm" (click)="attach()"><app-icon name="image" [size]="17" /></button>
+                <button type="button" class="btn btn--ghost btn--icon btn--sm" aria-label="Attach a file" (click)="attach()"><app-icon name="image" [size]="17" /></button>
                 <textarea class="textarea" rows="1" [(ngModel)]="draft" placeholder="Write a message…"
                   style="border:0;box-shadow:none;padding:6px 4px;min-height:38px;resize:none"
                   (keydown.enter)="onEnter($event)"></textarea>
-                <button class="btn btn--primary btn--icon" [disabled]="!draft.trim() && !attachment()" (click)="send()">
+                <button type="button" class="btn btn--primary btn--icon" aria-label="Send message" [disabled]="!draft.trim() && !attachment()" (click)="send()">
                   <app-icon name="send" [size]="16" />
                 </button>
               </div>
@@ -178,20 +181,15 @@ const REACTIONS = ['👍', '❤️', '🚀', '😂', '🙏'];
 
     <!-- new-message people picker -->
     @if (composing()) {
-      <div class="modal-scrim" (click)="composing.set(false)">
-        <div class="modal" (click)="$event.stopPropagation()">
-          <div class="row between">
-            <div class="b">New message</div>
-            <button class="btn btn--ghost btn--icon btn--sm" (click)="composing.set(false)"><app-icon name="x" [size]="16" /></button>
-          </div>
-          <div class="searchbar mt-8">
+      <app-dialog title="New message" subtitle="Start a conversation with anyone on Nawa." (close)="composing.set(false)">
+          <div class="searchbar">
             <app-icon name="search" [size]="15" />
-            <input class="input" placeholder="Search people" [ngModel]="pick()" (ngModelChange)="pick.set($event)"
+            <input class="input" placeholder="Search people" aria-label="Search people" [ngModel]="pick()" (ngModelChange)="pick.set($event)"
               style="border:0;box-shadow:none;background:transparent" />
           </div>
           <div class="col g-2 mt-8" style="max-height:340px;overflow:auto">
             @for (p of pickList(); track p.id) {
-              <button class="hl-row" style="width:100%;text-align:left;background:none;border:0;cursor:pointer" (click)="startWith(p.id)">
+              <button type="button" class="hl-row btn-reset" (click)="startWith(p.id)">
                 <app-av [name]="p.name" [size]="36" [verified]="p.verified" />
                 <span class="grow" style="min-width:0">
                   <span class="sm b" style="display:block">{{ p.name }}</span>
@@ -200,9 +198,9 @@ const REACTIONS = ['👍', '❤️', '🚀', '😂', '🙏'];
                 <app-icon name="chevR" [size]="15" class="faint" />
               </button>
             }
+            @if (!pickList().length) { <span class="tiny faint center" style="padding:14px">No one matches "{{ pick() }}"</span> }
           </div>
-        </div>
-      </div>
+      </app-dialog>
     }
   `,
   styles: [`
@@ -219,15 +217,12 @@ const REACTIONS = ['👍', '❤️', '🚀', '😂', '🙏'];
     .attach { background: var(--canvas-2); border: 1px solid var(--line); border-radius: 9px; padding: 7px 10px; margin-bottom: 5px; }
     .msg__react { position: absolute; bottom: -9px; right: 6px; background: var(--surface); border: 1px solid var(--line);
       border-radius: 999px; font-size: 11px; padding: 0 4px; line-height: 16px; }
-    .react-bar { display: none; gap: 2px; margin-top: 3px; }
-    .msg:hover .react-bar { display: flex; }
+    /* hidden until hover or keyboard focus, but always reachable with Tab */
+    .react-bar { display: flex; gap: 2px; margin-top: 3px; opacity: 0; transition: opacity .12s; }
+    .msg:hover .react-bar, .msg:focus-within .react-bar { opacity: 1; }
     .react-bar button { background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
       font-size: 13px; line-height: 1; padding: 3px 5px; cursor: pointer; }
     .react-bar button:hover { transform: scale(1.15); }
-    .modal-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(10,10,18,.5); backdrop-filter: blur(3px);
-      display: grid; place-items: center; padding: 18px; }
-    .modal { width: min(420px, 100%); background: var(--surface); border: 1px solid var(--line);
-      border-radius: 16px; padding: 16px; box-shadow: 0 24px 60px rgba(0,0,0,.28); }
     @media (max-width: 900px) {
       .msgrid { grid-template-columns: 1fr; }
       .mchat { height: calc(100vh - 240px); }

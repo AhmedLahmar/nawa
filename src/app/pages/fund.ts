@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Store } from '../core/store';
 import { CARDS } from '../feed/cards';
+import { MoneyGuide } from '../feed/money-guide';
 import { fmt, UI } from '../ui/ui';
 
 const SORTS = [
@@ -14,7 +15,7 @@ const SORTS = [
 @Component({
   selector: 'app-fund-page',
   standalone: true,
-  imports: [RouterLink, UI, CARDS],
+  imports: [RouterLink, UI, CARDS, MoneyGuide],
   template: `
     <div class="page">
       <div class="page-head">
@@ -34,6 +35,7 @@ const SORTS = [
         </div>
       </div>
 
+      <app-money-guide [highlight]="['round']" />
       <div class="card card--tint row between wrap g-16 pad mb-16">
         <div class="row g-24 wrap">
           <div class="stat"><span class="stat__v">{{ fmt.money(totalRaised(), store.currency) }}</span><span class="stat__l">pledged in the demo</span></div>

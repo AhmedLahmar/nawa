@@ -1304,15 +1304,15 @@ export const CHALLENGES: Challenge[] = [
    ------------------------------------------------------------ */
 export const NOTIFICATIONS: Notification[] = [
   { id: 'n1', kind: 'support', actorId: 's_fatma', text: 'supported your Day 87 update and backed AgriX with 150 TND', at: '12m', unread: true, link: '/fund/c_agrix', meta: 'Early believer reward' },
-  { id: 'n2', kind: 'expert', actorId: 'e_dina', text: 'replied to your update: “Monthly invoicing will double your average contract length.”', at: '1h', unread: true, link: '/founder/ahmedbenali' },
+  { id: 'n2', kind: 'expert', actorId: 'e_dina', text: 'replied to your update: “Monthly invoicing will double your average contract length.”', at: '1h', unread: true, link: '/me' },
   { id: 'n3', kind: 'funding', actorId: 'org_orbit', text: 'Your campaign reached 74% of its goal — 3 supporters in the last 24h', at: '3h', unread: true, link: '/fund/c_agrix', meta: '18,500 / 25,000 TND' },
-  { id: 'n4', kind: 'follow', actorId: 's_bilal', text: 'started following you and offered design help', at: '5h', unread: true, link: '/founder/bilaln' },
-  { id: 'n5', kind: 'milestone', actorId: ME_ID, text: 'Milestone verified: First revenue (Day 87). Founder Score +3', at: '8h', unread: false, link: '/founder/ahmedbenali', meta: 'Score 79 → 82' },
+  { id: 'n4', kind: 'follow', actorId: 's_bilal', text: 'started following you and offered design help', at: '5h', unread: true, link: '/u/bilaln' },
+  { id: 'n5', kind: 'milestone', actorId: ME_ID, text: 'Milestone verified: First revenue (Day 87). Founder Score +3', at: '8h', unread: false, link: '/me', meta: 'Score 79 → 82' },
   { id: 'n6', kind: 'challenge', actorId: 'org_orbit', text: 'You moved to #2 on the Build Your MVP in 30 Days leaderboard', at: '1d', unread: false, link: '/challenges/mvp-30-days' },
-  { id: 'n7', kind: 'comment', actorId: 'p_nour', text: 'commented on your failure post: “The first contract is the hardest one.”', at: '1d', unread: false, link: '/founder/ahmedbenali' },
+  { id: 'n7', kind: 'comment', actorId: 'p_nour', text: 'commented on your failure post: “The first contract is the hardest one.”', at: '1d', unread: false, link: '/me' },
   { id: 'n8', kind: 'incubator', actorId: 'org_orbit', text: 'Orbit Labs added a new cohort milestone: Unit economics reviewed (Week 10)', at: '2d', unread: false, link: '/incubators/orbit-labs' },
   { id: 'n9', kind: 'support', actorId: 's_leila', text: 'supported your update and asked about Sahel coverage', at: '2d', unread: false },
-  { id: 'n10', kind: 'expert', actorId: 'e_karim', text: 'endorsed AgriX: “Rare discipline in MVP scoping.”', at: '3d', unread: false, link: '/startup/agrix', meta: 'Endorsement · Founder Score +2' },
+  { id: 'n10', kind: 'expert', actorId: 'e_karim', text: 'endorsed AgriX: “Rare discipline in MVP scoping.”', at: '3d', unread: false, link: '/s/agrix', meta: 'Endorsement · Founder Score +2' },
   { id: 'n11', kind: 'funding', actorId: 'p_sami', text: 'launched a campaign: Nafhem — 60,000 TND for offline mode', at: '4d', unread: false, link: '/fund/c_nafhem' },
 ];
 

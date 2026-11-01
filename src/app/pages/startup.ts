@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ME_ID } from '../core/mock-data';
 import { Store } from '../core/store';
 import { CARDS } from '../feed/cards';
 import { PostCard } from '../feed/post-card';
@@ -38,7 +39,7 @@ import { fmt, UI } from '../ui/ui';
                   <a class="btn btn--seed" [routerLink]="['/fund', c.id]"><app-icon name="rocket" [size]="15" /> Support</a>
                 }
                 <button class="btn btn--outline-brand" (click)="tip.set(true)"><app-icon name="heart" [size]="15" /> Tip</button>
-                <button class="btn btn--icon" (click)="store.toast('Link copied to clipboard (demo)', '🔗')">
+                <button type="button" class="btn btn--icon" aria-label="Copy link" (click)="store.toast('Link copied to clipboard (demo)', '🔗')">
                   <app-icon name="link" [size]="16" />
                 </button>
               </div>
@@ -353,7 +354,7 @@ export class StartupPage {
   });
   readonly founderScore = computed(() => {
     const f = this.founder();
-    return f?.id === 'u_me' ? this.store.myScore() : f?.founderScore ?? 0;
+    return f?.id === ME_ID ? this.store.myScore() : f?.founderScore ?? 0;
   });
   readonly campaign = computed(() => {
     const s = this.s();

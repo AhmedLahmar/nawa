@@ -143,7 +143,7 @@ export class JobsPage {
             <div class="card col g-12 pad" style="position:sticky;top:16px">
               @if (!store.hasApplied(j.id) && !applied()) {
                 <span class="up faint">Apply</span>
-                <textarea class="textarea" rows="4" [(ngModel)]="note" placeholder="A short note — why you, and what you'd do in the first two weeks."></textarea>
+                <textarea aria-label="Application note" class="textarea" rows="4" [(ngModel)]="note" placeholder="A short note — why you, and what you'd do in the first two weeks."></textarea>
                 <button class="btn btn--primary btn--block" [disabled]="!note.trim()" (click)="apply(j.id)">
                   <app-icon name="send" [size]="15" /> Submit application
                 </button>
@@ -169,8 +169,6 @@ export class JobsPage {
     </div>
   `,
   styles: [`
-    .wsgrid { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 16px; align-items: start; }
-    @media (max-width: 1020px) { .wsgrid { grid-template-columns: 1fr; } }
   `],
 })
 export class JobPage {
@@ -209,24 +207,24 @@ export class JobPage {
             <p class="muted">Hire for {{ store.activeStartup().name }}. It reaches people already following your build.</p>
           </div>
           <div class="grid grid-2">
-            <div class="field"><label>Title</label><input class="input" [(ngModel)]="title" placeholder="e.g. Flutter Developer" /></div>
+            <div class="field"><label for="f-jobs-1">Title</label><input id="f-jobs-1" class="input" [(ngModel)]="title" placeholder="e.g. Flutter Developer" /></div>
             <div class="field">
-              <label>Type</label>
-              <select class="select" [(ngModel)]="kind">
+              <label for="f-jobs-2">Type</label>
+              <select id="f-jobs-2" class="select" [(ngModel)]="kind">
                 @for (k of kinds; track k) { <option [value]="k">{{ km(k).label }}</option> }
               </select>
             </div>
-            <div class="field"><label>Location</label><input class="input" [(ngModel)]="location" placeholder="e.g. Tunis" /></div>
+            <div class="field"><label for="f-jobs-3">Location</label><input id="f-jobs-3" class="input" [(ngModel)]="location" placeholder="e.g. Tunis" /></div>
             <div class="field">
               <label class="row g-8" style="cursor:pointer"><input type="checkbox" [(ngModel)]="remote" /> Remote friendly</label>
             </div>
           </div>
-          <div class="field"><label>Skills (comma separated)</label><input class="input" [(ngModel)]="skillsRaw" placeholder="Flutter, Offline sync, Maps" /></div>
+          <div class="field"><label for="f-jobs-4">Skills (comma separated)</label><input id="f-jobs-4" class="input" [(ngModel)]="skillsRaw" placeholder="Flutter, Offline sync, Maps" /></div>
           <div class="grid grid-2">
-            <div class="field"><label>Compensation (optional)</label><input class="input" [(ngModel)]="pay" placeholder="e.g. 3,000 TND for the engagement" /></div>
-            <div class="field"><label>Equity (optional)</label><input class="input" [(ngModel)]="equity" placeholder="e.g. 0.5–1%" /></div>
+            <div class="field"><label for="f-jobs-5">Compensation (optional)</label><input id="f-jobs-5" class="input" [(ngModel)]="pay" placeholder="e.g. 3,000 TND for the engagement" /></div>
+            <div class="field"><label for="f-jobs-6">Equity (optional)</label><input id="f-jobs-6" class="input" [(ngModel)]="equity" placeholder="e.g. 0.5–1%" /></div>
           </div>
-          <div class="field"><label>Description</label><textarea class="textarea" rows="5" [(ngModel)]="description"></textarea></div>
+          <div class="field"><label for="f-jobs-7">Description</label><textarea id="f-jobs-7" class="textarea" rows="5" [(ngModel)]="description"></textarea></div>
           <div class="row between">
             <a class="btn btn--ghost" routerLink="/jobs">Cancel</a>
             <button class="btn btn--primary btn--lg" [disabled]="!title.trim()" (click)="post()">

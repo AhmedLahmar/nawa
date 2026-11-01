@@ -122,10 +122,10 @@ export class RoomsPage {
 
           @if (r.joined) {
             <div class="composer-bar" style="margin:12px 14px">
-              <textarea class="textarea" rows="1" [(ngModel)]="draft" placeholder="Message the room…"
+              <textarea aria-label="Message the room" class="textarea" rows="1" [(ngModel)]="draft" placeholder="Message the room…"
                 style="border:0;box-shadow:none;padding:6px 4px;min-height:38px;resize:none"
                 (keydown.enter)="onEnter($event)"></textarea>
-              <button class="btn btn--primary btn--icon" [disabled]="!draft.trim()" (click)="send(r.id)">
+              <button type="button" class="btn btn--primary btn--icon" aria-label="Send to room" [disabled]="!draft.trim()" (click)="send(r.id)">
                 <app-icon name="send" [size]="16" />
               </button>
             </div>

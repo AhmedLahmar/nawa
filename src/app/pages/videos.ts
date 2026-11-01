@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ME_ID } from '../core/mock-data';
 import { Store } from '../core/store';
 import { fmt, UI } from '../ui/ui';
 
@@ -9,55 +10,65 @@ import { fmt, UI } from '../ui/ui';
   imports: [RouterLink, UI],
   template: `
     <div class="reels">
+      <h1 class="sr-only">Reels</h1>
       <!-- top overlay: title + category filter -->
       <div class="reels__top">
-        <div class="row g-8">
+        <div class="row g-8" aria-hidden="true">
           <span class="brandmark-sm">🎬</span>
           <span class="bb" style="font-family:var(--display);font-size:16px;color:#fff">Reels</span>
         </div>
-        <div class="row g-6 scroll-x reels__cats">
-          <button class="rchip" [class.rchip--on]="cat() === 'all'" (click)="cat.set('all')">For you</button>
+        <div class="row g-6 scroll-x reels__cats" role="group" aria-label="Filter reels by category">
+          <button type="button" class="rchip" [class.rchip--on]="cat() === 'all'" [attr.aria-pressed]="cat() === 'all'" (click)="cat.set('all')">For you</button>
           @for (c of categories(); track c) {
-            <button class="rchip" [class.rchip--on]="cat() === c" (click)="cat.set(c)">{{ c }}</button>
+            <button type="button" class="rchip" [class.rchip--on]="cat() === c" [attr.aria-pressed]="cat() === c" (click)="cat.set(c)">{{ c }}</button>
           }
         </div>
+        <a class="reels__close" routerLink="/home" aria-label="Close reels and go back to the feed">
+          <app-icon name="x" [size]="18" />
+        </a>
       </div>
 
-      <!-- vertical snap feed -->
-      <div class="reels__feed">
-        @for (v of list(); track v.id) {
-          <section class="reel-full" [style.background]="v.gradient">
+      <!-- vertical snap feed; focusable so arrow keys / PageDown scroll between reels -->
+      <div class="reels__feed" tabindex="0" aria-label="Reels feed — use arrow keys to move between clips">
+        @for (v of list(); track v.id; let i = $index) {
+          <section class="reel-full" [style.background]="v.gradient"
+            [attr.aria-label]="'Reel ' + (i + 1) + ' of ' + list().length + ': ' + v.title">
             <div class="reel-full__scene">
-              <span class="reel-full__hero">{{ v.emoji }}</span>
-              <button class="reel-full__play" (click)="toggleTip(v.title)">
+              <span class="reel-full__hero" aria-hidden="true">{{ v.emoji }}</span>
+              <button type="button" class="reel-full__play" [attr.aria-label]="'Play ' + v.title + ' (' + v.duration + ')'" (click)="toggleTip(v.title)">
                 <app-icon name="play" [size]="30" [weight]="0" />
               </button>
-              <span class="reel-full__dur">{{ v.duration }}</span>
+              <span class="reel-full__dur" aria-hidden="true">{{ v.duration }}</span>
             </div>
 
             <!-- right action rail -->
             <div class="rail">
-              <a class="rail__av" [routerLink]="['/u', handle(v.authorId)]">
-                <app-av [name]="name(v.authorId)" [size]="46" [verified]="verified(v.authorId)" />
-                @if (!isFollowing(v.authorId) && v.authorId !== 'u_me') {
-                  <button class="rail__follow" (click)="follow($event, v.authorId)"><app-icon name="plus" [size]="12" [weight]="3" /></button>
+              <div class="rail__av">
+                <a [routerLink]="['/u', handle(v.authorId)]" [attr.aria-label]="name(v.authorId) + ' profile'">
+                  <app-av [name]="name(v.authorId)" [size]="46" [verified]="verified(v.authorId)" />
+                </a>
+                @if (!isFollowing(v.authorId) && v.authorId !== meId) {
+                  <button type="button" class="rail__follow" [attr.aria-label]="'Follow ' + name(v.authorId)" (click)="follow($event, v.authorId)">
+                    <app-icon name="plus" [size]="12" [weight]="3" />
+                  </button>
                 }
-              </a>
-              <button class="rail__btn" [class.on]="store.isVideoSupported(v.id)" (click)="support(v.id)">
+              </div>
+              <button type="button" class="rail__btn" [class.on]="store.isVideoSupported(v.id)"
+                [attr.aria-pressed]="store.isVideoSupported(v.id)" [attr.aria-label]="'Support, ' + v.supports + ' supports'" (click)="support(v.id)">
                 <span class="rail__ic"><app-icon name="rocket" [size]="24" /></span>
-                <span class="rail__n">{{ fmt.k(v.supports) }}</span>
+                <span class="rail__n" aria-hidden="true">{{ fmt.k(v.supports) }}</span>
               </button>
-              <button class="rail__btn" (click)="openComments(v.id)">
+              <button type="button" class="rail__btn" [attr.aria-label]="'Comments, ' + v.comments" (click)="openComments(v.id)">
                 <span class="rail__ic"><app-icon name="comment" [size]="24" /></span>
-                <span class="rail__n">{{ v.comments }}</span>
+                <span class="rail__n" aria-hidden="true">{{ v.comments }}</span>
               </button>
-              <button class="rail__btn" (click)="store.shareVideo(v.id)">
+              <button type="button" class="rail__btn" aria-label="Share" (click)="store.shareVideo(v.id)">
                 <span class="rail__ic"><app-icon name="share" [size]="23" /></span>
-                <span class="rail__n">Share</span>
+                <span class="rail__n" aria-hidden="true">Share</span>
               </button>
               @if (v.startupId) {
-                <a class="rail__btn" [routerLink]="['/s', slug(v.startupId)]">
-                  <span class="rail__ic rail__ic--sq" [style.background]="v.gradient">{{ startupEmoji(v.startupId) }}</span>
+                <a class="rail__btn" [routerLink]="['/s', slug(v.startupId)]" [attr.aria-label]="'Open ' + startupName(v.startupId)">
+                  <span class="rail__ic rail__ic--sq" [style.background]="v.gradient" aria-hidden="true">{{ startupEmoji(v.startupId) }}</span>
                 </a>
               }
             </div>
@@ -87,27 +98,21 @@ import { fmt, UI } from '../ui/ui';
             <div class="center col g-10" style="color:#fff;align-items:center">
               <app-icon name="video" [size]="30" />
               <span class="sm">No clips in this category</span>
-              <button class="btn btn--sm" (click)="cat.set('all')">Show all</button>
+              <button type="button" class="btn btn--sm" (click)="cat.set('all')">Show all</button>
             </div>
           </section>
         }
       </div>
 
       <!-- record FAB -->
-      <button class="reels__record" (click)="store.toast('Recording is mocked in this demo', '🎬')">
+      <button type="button" class="reels__record" (click)="store.toast('Recording is mocked in this demo', '🎬')">
         <app-icon name="camera" [size]="18" /> Record
       </button>
 
       <!-- comment sheet -->
       @if (comments(); as v) {
-        <div class="sheet-scrim" (click)="comments.set(null)">
-          <div class="sheet" (click)="$event.stopPropagation()">
-            <div class="sheet__grab"></div>
-            <div class="row between">
-              <span class="b">{{ v.comments }} comments</span>
-              <button class="btn btn--ghost btn--icon btn--sm" (click)="comments.set(null)"><app-icon name="x" [size]="16" /></button>
-            </div>
-            <div class="col g-12 mt-12" style="max-height:44vh;overflow:auto">
+        <app-dialog [title]="v.comments + ' comments'" [subtitle]="v.title" (close)="comments.set(null)">
+            <div class="col g-12" style="max-height:44vh;overflow:auto">
               @for (c of sampleComments; track c.who) {
                 <div class="row-t g-10">
                   <app-av [name]="c.who" [size]="32" />
@@ -118,21 +123,26 @@ import { fmt, UI } from '../ui/ui';
             </div>
             <div class="composer-bar mt-8">
               <app-av [name]="store.me().name" [size]="28" />
-              <input class="input" placeholder="Add a comment…" style="border:0;box-shadow:none;background:transparent"
+              <input class="input" placeholder="Add a comment…" aria-label="Add a comment" style="border:0;box-shadow:none;background:transparent"
                 [value]="draft()" (input)="draft.set($any($event.target).value)" (keydown.enter)="addComment(v.id)" />
-              <button class="btn btn--primary btn--icon" [disabled]="!draft().trim()" (click)="addComment(v.id)">
+              <button type="button" class="btn btn--primary btn--icon" aria-label="Post comment" [disabled]="!draft().trim()" (click)="addComment(v.id)">
                 <app-icon name="send" [size]="16" />
               </button>
             </div>
-          </div>
-        </div>
+        </app-dialog>
       }
     </div>
   `,
   styles: [`
-    .reels { position: fixed; inset: 0; top: 0; background: #05060a; z-index: 40; }
-    /* leave room for the app's own top bar / bottom tabbar on mobile via env-safe padding */
-    .reels__feed { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+    /* sits inside the shell's main column so the sidebar, top bar and mobile tab bar stay usable */
+    .reels { position: relative; height: calc(100dvh - var(--top-h)); background: #05060a; overflow: hidden; }
+    @media (max-width: 860px) {
+      .reels { height: calc(100dvh - var(--top-h) - var(--tabbar-h) - env(safe-area-inset-bottom)); }
+    }
+    .reels__close { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+      background: rgba(0,0,0,.4); color: #fff; }
+    .reels__close:hover { background: rgba(0,0,0,.6); }
+    .reels__feed { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; scroll-behavior: smooth; outline-offset: -3px; }
     .reels__feed::-webkit-scrollbar { display: none; }
     .reel-full { position: relative; height: 100%; scroll-snap-align: start; scroll-snap-stop: always;
       display: flex; overflow: hidden; }
@@ -152,10 +162,11 @@ import { fmt, UI } from '../ui/ui';
     .reels__cats { flex: 1; }
     .rchip { flex: none; background: rgba(255,255,255,.14); color: #fff; border: 0; border-radius: 999px;
       padding: 6px 13px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-    .rchip--on { background: #fff; color: var(--ink); }
+    .rchip--on { background: #fff; color: #0c0d14; }
     .rail { position: absolute; right: 10px; bottom: 96px; z-index: 4; display: flex; flex-direction: column;
       align-items: center; gap: 18px; }
     .rail__av { position: relative; display: block; }
+    .rail__av a { display: block; border-radius: 50%; }
     .rail__follow { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); width: 20px; height: 20px;
       border-radius: 50%; border: 2px solid #fff; background: var(--rose-500); color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
     .rail__btn { background: none; border: 0; color: #fff; display: flex; flex-direction: column; align-items: center;
@@ -179,16 +190,12 @@ import { fmt, UI } from '../ui/ui';
       .rail { left: auto; right: max(16px, calc(50% - 232px)); transform: none; }
       .reel-full__meta { left: 50%; right: auto; width: 480px; transform: translateX(-50%); padding-right: 80px; }
     }
-    .sheet-scrim { position: absolute; inset: 0; z-index: 8; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; }
-    .sheet { width: 100%; background: var(--surface); border-radius: 18px 18px 0 0; padding: 12px 16px 16px;
-      max-height: 66%; display: flex; flex-direction: column; animation: sheetup .28s ease; }
-    @keyframes sheetup { from { transform: translateY(30px); opacity: .6 } to { transform: none; opacity: 1 } }
-    .sheet__grab { width: 40px; height: 4px; border-radius: 999px; background: var(--line-2); margin: 2px auto 10px; }
   `],
 })
 export class VideosPage {
   readonly store = inject(Store);
   readonly fmt = fmt;
+  readonly meId = ME_ID;
   readonly cat = signal('all');
   readonly comments = signal<import('../core/models').Video | null>(null);
   readonly draft = signal('');

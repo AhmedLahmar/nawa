@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, effect, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '../core/store';
 import { Viewer } from './viewer';
@@ -10,8 +10,8 @@ import { UI } from '../ui/ui';
   imports: [UI],
   template: `
     @if (v.open() && v.group(); as g) {
-      <div class="viewer">
-        <button class="btn btn--icon viewer__x" (click)="v.close()" aria-label="Close">
+      <div class="viewer" role="dialog" aria-modal="true" [attr.aria-label]="'Story from ' + author(g.authorId)">
+        <button #closeBtn type="button" class="btn btn--icon viewer__x" (click)="v.close()" aria-label="Close story">
           <app-icon name="x" [size]="18" />
         </button>
 
@@ -31,8 +31,8 @@ import { UI } from '../ui/ui';
           </div>
 
           <div class="viewer__nav">
-            <button (click)="v.prev()" aria-label="Previous"></button>
-            <button (click)="v.next()" aria-label="Next"></button>
+            <button type="button" (click)="v.prev()" aria-label="Previous story"></button>
+            <button type="button" (click)="v.next()" aria-label="Next story"></button>
           </div>
 
           @if (v.item(); as it) {
@@ -60,7 +60,7 @@ import { UI } from '../ui/ui';
                   <app-icon name="rocket" [size]="14" /> Support
                 </button>
                 @if (g.startupId) {
-                  <button class="btn btn--sm" style="background:#fff;border-color:#fff;color:var(--ink)"
+                  <button type="button" class="btn btn--sm" style="background:#fff;border-color:#fff;color:#0c0d14"
                     (click)="openStartup(g.startupId!)">
                     View startup <app-icon name="chevR" [size]="14" />
                   </button>
@@ -80,6 +80,29 @@ export class StoryViewer {
   readonly v = inject(Viewer);
   private store = inject(Store);
   private router = inject(Router);
+  private closeBtn = viewChild<ElementRef<HTMLButtonElement>>('closeBtn');
+  private returnTo: HTMLElement | null = null;
+
+  constructor() {
+    // move focus into the viewer when it opens, and back to the trigger when it closes
+    effect(() => {
+      if (this.v.open()) {
+        this.returnTo ??= document.activeElement as HTMLElement | null;
+        setTimeout(() => this.closeBtn()?.nativeElement.focus());
+      } else if (this.returnTo) {
+        this.returnTo.focus();
+        this.returnTo = null;
+      }
+    });
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKey(e: KeyboardEvent): void {
+    if (!this.v.open()) return;
+    if (e.key === 'Escape') this.v.close();
+    else if (e.key === 'ArrowRight') this.v.next();
+    else if (e.key === 'ArrowLeft') this.v.prev();
+  }
 
   author = (id: string) => this.store.person(id)?.name ?? '';
   startupEmoji = (id?: string) => (id ? this.store.startup(id)?.emoji ?? '' : '');

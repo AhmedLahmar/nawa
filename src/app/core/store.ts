@@ -18,6 +18,8 @@ import {
 import { CopilotAnswer, generateRoadmap } from './ai';
 
 const KEY = 'nawa.demo.v1';
+/** Saved-state schema. v1 states are still read; missing seed items/fields are merged in. */
+const SCHEMA = 2;
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 
 export interface Booking {
@@ -105,6 +107,9 @@ export class Store {
     const el = document.documentElement;
     if (this.theme() === 'dark') el.setAttribute('data-theme', 'dark');
     else el.removeAttribute('data-theme');
+    // keep the mobile browser chrome in step with the theme
+    document.querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', this.theme() === 'dark' ? '#0c0d14' : '#ffffff');
   }
 
   private restoreTheme(): void {
@@ -347,7 +352,7 @@ export class Store {
   /** Makes the demo feel alive: the community reacts a few seconds after you post. */
   private simulateEngagement(postId: string): void {
     const wave = (delay: number, supports: number, comment?: Comment, notif?: Notification, followers = 0) => {
-      setTimeout(() => {
+      this.later(() => {
         this.posts.update(list => list.map(p => p.id === postId
           ? { ...p, supports: p.supports + supports, comments: comment ? [...p.comments, comment] : p.comments }
           : p));
@@ -589,14 +594,14 @@ export class Store {
     const t = this.threads().find(x => x.id === threadId);
     if (!t) return;
     // the other side "reads" the message shortly after (single -> double tick)
-    setTimeout(() => {
+    this.later(() => {
       this.threads.update(list => list.map(x => x.id === threadId
         ? { ...x, messages: x.messages.map(m => (m.fromId === ME_ID ? { ...m, read: true } : m)) }
         : x));
       this.save();
     }, 1200);
     // then a scripted reply lands
-    setTimeout(() => {
+    this.later(() => {
       this.threads.update(list => list.map(x => x.id === threadId ? {
         ...x,
         messages: [...x.messages, {
@@ -856,7 +861,7 @@ export class Store {
     const room = this.room(roomId);
     const other = room?.memberIds.find(id => id !== ME_ID && this.person(id)?.role !== 'incubator');
     if (other) {
-      setTimeout(() => {
+      this.later(() => {
         this.rooms.update(list => list.map(r => r.id === roomId ? {
           ...r, messages: [...r.messages, {
             id: 'gm_' + ++this.seq, fromId: other, at: 'now',
@@ -932,11 +937,32 @@ export class Store {
     setTimeout(() => this.toasts.update(l => l.filter(t => t.id !== id)), 3600);
   }
 
+  /* ---------------- scheduled demo reactions ---------------- */
+  private timers = new Set<ReturnType<typeof setTimeout>>();
+
+  /** setTimeout that resetDemo() can cancel, so scripted replies never land in fresh data. */
+  private later(fn: () => void, ms: number): void {
+    const t = setTimeout(() => { this.timers.delete(t); fn(); }, ms);
+    this.timers.add(t);
+  }
+
   /* ---------------- persistence ---------------- */
+  /**
+   * Keeps the user's saved items but adds any seed items (by id) and seed
+   * fields that were introduced after the state was saved.
+   */
+  private merge<T extends { id: string }>(saved: T[] | undefined, seed: T[]): T[] {
+    if (!Array.isArray(saved)) return clone(seed);
+    const byId = new Map(seed.map(s => [s.id, s]));
+    const kept = saved.map(s => (byId.has(s.id) ? { ...clone(byId.get(s.id)!), ...s } : s));
+    const known = new Set(saved.map(s => s.id));
+    return [...kept, ...clone(seed.filter(s => !known.has(s.id)))];
+  }
+
   private save(): void {
     try {
       localStorage.setItem(KEY, JSON.stringify({
-        v: 1,
+        v: SCHEMA,
         people: this.people(), startups: this.startups(), posts: this.posts(),
         campaigns: this.campaigns(), roadmaps: this.roadmaps(), challenges: this.challenges(),
         notifications: this.notifications(), threads: this.threads(),
@@ -957,10 +983,15 @@ export class Store {
       const raw = localStorage.getItem(KEY);
       if (!raw) return;
       const d = JSON.parse(raw);
-      if (d.v !== 1) return;
-      this.people.set(d.people); this.startups.set(d.startups); this.posts.set(d.posts);
-      this.campaigns.set(d.campaigns); this.roadmaps.set(d.roadmaps); this.challenges.set(d.challenges);
-      this.notifications.set(d.notifications); this.threads.set(d.threads);
+      if (typeof d.v !== 'number' || d.v < 1 || d.v > SCHEMA) return;
+      this.people.set(this.merge(d.people, PEOPLE));
+      this.startups.set(this.merge(d.startups, STARTUPS));
+      this.posts.set(this.merge(d.posts, POSTS));
+      this.campaigns.set(this.merge(d.campaigns, CAMPAIGNS));
+      this.roadmaps.set(this.merge(d.roadmaps, ROADMAPS));
+      this.challenges.set(this.merge(d.challenges, CHALLENGES));
+      this.notifications.set(this.merge(d.notifications, NOTIFICATIONS));
+      this.threads.set(this.merge(d.threads, THREADS));
       this.activeStartupId.set(d.activeStartupId); this.follows.set(d.follows);
       this.supported.set(d.supported); this.seenStories.set(d.seenStories);
       this.supportedVideos.set(d.supportedVideos ?? []);
@@ -969,20 +1000,22 @@ export class Store {
       this.copilot.set(d.copilot); this.analyses.set(d.analyses);
       this.onboarded.set(d.onboarded);
       // new-feature collections — fall back to seed data for states saved before they existed
-      this.products.set(d.products ?? clone(PRODUCTS));
-      this.livestreams.set(d.livestreams ?? clone(LIVES));
-      this.rooms.set(d.rooms ?? clone(ROOMS));
-      this.jobs.set(d.jobs ?? clone(JOBS));
-      this.events.set(d.events ?? clone(EVENTS));
+      this.products.set(this.merge(d.products, PRODUCTS));
+      this.livestreams.set(this.merge(d.livestreams, LIVES));
+      this.rooms.set(this.merge(d.rooms, ROOMS));
+      this.jobs.set(this.merge(d.jobs, JOBS));
+      this.events.set(this.merge(d.events, EVENTS));
       this.orders.set(d.orders ?? []);
-      this.donations.set(d.donations ?? clone(DONATIONS));
-      this.transactions.set(d.transactions ?? clone(TRANSACTIONS));
+      this.donations.set(this.merge(d.donations, DONATIONS));
+      this.transactions.set(this.merge(d.transactions, TRANSACTIONS));
       this.applications.set(d.applications ?? []);
       this.seq = d.seq ?? 0;
     } catch { /* corrupted state — start from the demo dataset */ }
   }
 
   resetDemo(): void {
+    this.timers.forEach(clearTimeout);
+    this.timers.clear();
     try { localStorage.removeItem(KEY); } catch { /* ignore */ }
     this.people.set(clone(PEOPLE)); this.startups.set(clone(STARTUPS)); this.posts.set(clone(POSTS));
     this.campaigns.set(clone(CAMPAIGNS)); this.roadmaps.set(clone(ROADMAPS));

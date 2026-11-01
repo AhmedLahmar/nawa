@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { LiveChatMessage } from '../core/models';
+import { ME_ID } from '../core/mock-data';
 import { Store } from '../core/store';
 import { fmt, UI } from '../ui/ui';
 
@@ -79,9 +80,6 @@ import { fmt, UI } from '../ui/ui';
     </div>
   `,
   styles: [`
-    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rose-500); display: inline-block;
-      box-shadow: 0 0 0 0 rgba(222,63,92,.6); animation: livepulse 1.6s infinite; }
-    @keyframes livepulse { 0% { box-shadow: 0 0 0 0 rgba(222,63,92,.5) } 70% { box-shadow: 0 0 0 7px rgba(222,63,92,0) } 100% { box-shadow: 0 0 0 0 rgba(222,63,92,0) } }
     .live-card { overflow: hidden; text-decoration: none; }
     .live-card__thumb { position: relative; aspect-ratio: 16/10; display: grid; place-items: center; }
     .live-card__emoji { font-size: 44px; filter: drop-shadow(0 6px 18px rgba(0,0,0,.3)); }
@@ -138,7 +136,7 @@ interface FloatHeart { id: number; left: number; }
           </a>
           <span class="lv__badge"><span class="live-dot"></span> LIVE</span>
           <span class="lv__viewers"><app-icon name="eye" [size]="13" /> {{ fmt.k(viewers()) }}</span>
-          <button class="btn btn--icon" style="background:rgba(0,0,0,.35);color:#fff;border:0" (click)="close()">
+          <button type="button" class="btn btn--icon" aria-label="Leave live stream" style="background:rgba(0,0,0,.35);color:#fff;border:0" (click)="close()">
             <app-icon name="x" [size]="18" />
           </button>
         </div>
@@ -182,7 +180,7 @@ interface FloatHeart { id: number; left: number; }
 
         <!-- composer + heart -->
         <div class="lv__bar">
-          <input class="lv__input" [(ngModel)]="msg" placeholder="Say something…" (keydown.enter)="say()" />
+          <input aria-label="Chat message" class="lv__input" [(ngModel)]="msg" placeholder="Say something…" (keydown.enter)="say()" />
           <button class="lv__send" (click)="say()"><app-icon name="send" [size]="18" /></button>
           <button class="lv__like" (click)="like()"><app-icon name="heart" [size]="20" /></button>
         </div>
@@ -208,8 +206,6 @@ interface FloatHeart { id: number; left: number; }
       font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; letter-spacing: .04em; }
     .lv__viewers { display: flex; align-items: center; gap: 4px; background: rgba(10,10,18,.5); color: #fff;
       font-size: 12px; padding: 4px 9px; border-radius: 999px; }
-    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rose-500); display: inline-block; animation: livepulse 1.6s infinite; }
-    @keyframes livepulse { 0% { box-shadow: 0 0 0 0 rgba(222,63,92,.5) } 70% { box-shadow: 0 0 0 7px rgba(222,63,92,0) } 100% { box-shadow: 0 0 0 0 rgba(222,63,92,0) } }
     .lv__title { position: relative; z-index: 3; color: #fff; font-weight: 640; padding: 10px 16px 0; max-width: 640px;
       text-shadow: 0 2px 12px rgba(0,0,0,.4); font-family: var(--display); }
     .lv__hearts { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
@@ -328,7 +324,7 @@ export class LiveViewerPage implements OnDestroy {
   say(): void {
     const t = this.msg.trim();
     if (!t) return;
-    this.pushChat({ authorId: 'u_me', text: t });
+    this.pushChat({ authorId: ME_ID, text: t });
     this.msg = '';
   }
 
@@ -344,7 +340,7 @@ export class LiveViewerPage implements OnDestroy {
     const g = this.store.gift(giftId);
     this.store.sendLiveGift(s.id, giftId);
     this.raised.update(r => r + (g?.amount ?? 0));
-    this.pushChat({ authorId: 'u_me', text: '', giftId, amount: g?.amount });
+    this.pushChat({ authorId: ME_ID, text: '', giftId, amount: g?.amount });
     this.floatHeart();
   }
 

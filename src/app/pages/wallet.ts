@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TxnKind } from '../core/models';
 import { Store } from '../core/store';
+import { MoneyGuide } from '../feed/money-guide';
 import { fmt, UI } from '../ui/ui';
 
 const TXN_META: Record<TxnKind, { label: string; icon: string; tone: string }> = {
@@ -16,7 +17,7 @@ const TXN_META: Record<TxnKind, { label: string; icon: string; tone: string }> =
 @Component({
   selector: 'app-wallet-page',
   standalone: true,
-  imports: [RouterLink, UI],
+  imports: [RouterLink, UI, MoneyGuide],
   template: `
     <div class="page page--narrow">
       <div class="page-head">
@@ -27,6 +28,8 @@ const TXN_META: Record<TxnKind, { label: string; icon: string; tone: string }> =
         </div>
         <button class="btn btn--primary" (click)="payout()"><app-icon name="logout" [size]="15" /> Withdraw</button>
       </div>
+
+      <app-money-guide />
 
       <!-- balance hero -->
       <div class="card card--tint col g-14 pad-lg mb-16">

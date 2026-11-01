@@ -13,26 +13,16 @@ import { fmt, UI } from '../ui/ui';
   standalone: true,
   imports: [FormsModule, UI],
   template: `
-    <div class="modal-scrim" (click)="close.emit()">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <div class="row between">
-          <div class="row g-8">
-            <span style="font-size:22px">💛</span>
-            <div>
-              <div class="b">Back {{ targetName() }}</div>
-              <div class="tiny faint">A direct tip — no reward, no equity, just support.</div>
-            </div>
-          </div>
-          <button class="btn btn--ghost btn--icon btn--sm" (click)="close.emit()"><app-icon name="x" [size]="16" /></button>
-        </div>
-
+    <app-dialog [title]="'💛 Back ' + targetName()" subtitle="A direct tip — no reward, no equity, just support."
+      (close)="close.emit()">
         @if (!done()) {
-          <div class="col g-8 mt-12">
-            <span class="up faint">Send a gift</span>
+          <div class="col g-8" role="group" aria-labelledby="dn-gift-l">
+            <span class="up faint" id="dn-gift-l">Send a gift</span>
             <div class="row g-6 wrap">
               @for (g of store.gifts; track g.id) {
-                <button class="gift" [class.gift--on]="giftId() === g.id" (click)="pickGift(g.id, g.amount)">
-                  <span style="font-size:20px">{{ g.emoji }}</span>
+                <button type="button" class="gift" [class.gift--on]="giftId() === g.id" [attr.aria-pressed]="giftId() === g.id"
+                  [attr.aria-label]="g.label + ' gift, ' + g.amount + ' ' + store.currency" (click)="pickGift(g.id, g.amount)">
+                  <span style="font-size:20px" aria-hidden="true">{{ g.emoji }}</span>
                   <span class="tiny b">{{ g.label }}</span>
                   <span class="tiny faint">{{ g.amount }} {{ store.currency }}</span>
                 </button>
@@ -40,20 +30,21 @@ import { fmt, UI } from '../ui/ui';
             </div>
           </div>
 
-          <div class="col g-8 mt-12">
-            <span class="up faint">Or a custom amount ({{ store.currency }})</span>
+          <div class="col g-8 mt-12" role="group" aria-labelledby="dn-amt-l">
+            <span class="up faint" id="dn-amt-l">Or a custom amount ({{ store.currency }})</span>
             <div class="row g-6 wrap">
               @for (a of presets; track a) {
-                <button class="chip chip--sm" [class.chip--on]="amount() === a && !giftId()" (click)="pickAmount(a)">{{ a }}</button>
+                <button type="button" class="chip chip--sm" [class.chip--on]="amount() === a && !giftId()"
+                  [attr.aria-pressed]="amount() === a && !giftId()" (click)="pickAmount(a)">{{ a }}</button>
               }
               <input class="input num" type="number" min="1" style="width:110px" [ngModel]="amount()"
-                (ngModelChange)="setCustom($event)" />
+                aria-label="Custom amount" (ngModelChange)="setCustom($event)" />
             </div>
           </div>
 
           <div class="field mt-12">
-            <label>Message (optional)</label>
-            <input class="input" [(ngModel)]="message" placeholder="Say something to the founder…" maxlength="140" />
+            <label for="dn-msg">Message (optional)</label>
+            <input id="dn-msg" class="input" [(ngModel)]="message" placeholder="Say something to the founder…" maxlength="140" />
           </div>
 
           <label class="row g-8 tiny muted mt-8" style="cursor:pointer">
@@ -70,17 +61,12 @@ import { fmt, UI } from '../ui/ui';
             <span style="font-size:44px">{{ sentGift() || '💛' }}</span>
             <div class="b">Thank you!</div>
             <span class="sm muted center">Your {{ amount() }} {{ store.currency }} tip to {{ targetName() }} was recorded (simulated).</span>
-            <button class="btn btn--sm btn--block mt-8" (click)="close.emit()">Done</button>
+            <button type="button" class="btn btn--sm btn--block mt-8" (click)="close.emit()">Done</button>
           </div>
         }
-      </div>
-    </div>
+    </app-dialog>
   `,
   styles: [`
-    .modal-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(10,10,18,.5);
-      backdrop-filter: blur(3px); display: grid; place-items: center; padding: 18px; }
-    .modal { width: min(440px, 100%); background: var(--surface); border: 1px solid var(--line);
-      border-radius: 16px; padding: 18px; box-shadow: 0 24px 60px rgba(0,0,0,.28); max-height: 92vh; overflow: auto; }
     .gift { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 78px; padding: 9px 4px;
       border: 1px solid var(--line); border-radius: 11px; background: var(--surface); cursor: pointer; }
     .gift:hover { border-color: var(--seed-300, var(--seed-500)); }

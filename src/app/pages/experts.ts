@@ -34,7 +34,7 @@ import { fmt, UI } from '../ui/ui';
       <div class="row between wrap g-12 mb-16">
         <div class="searchbar" style="max-width:320px">
           <app-icon name="search" [size]="16" class="faint" />
-          <input [(ngModel)]="q" placeholder="Search by name, skill or industry…" />
+          <input aria-label="Search experts" [(ngModel)]="q" placeholder="Search by name, skill or industry…" />
         </div>
         <div class="row g-6 wrap">
           <button class="chip" [class.chip--on]="cat() === 'all'" (click)="cat.set('all')">All</button>

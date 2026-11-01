@@ -31,13 +31,13 @@ import { UI } from '../ui/ui';
             </div>
 
             <div class="field">
-              <label>Email</label>
-              <input class="input" type="email" autocomplete="username"
+              <label for="f-adminlogin-1">Email</label>
+              <input id="f-adminlogin-1" class="input" type="email" autocomplete="username"
                 [(ngModel)]="email" placeholder="admin@nawa.tn" (keydown.enter)="submit()" />
             </div>
             <div class="field">
-              <label>Password</label>
-              <input class="input" type="password" autocomplete="current-password"
+              <label for="f-adminlogin-2">Password</label>
+              <input id="f-adminlogin-2" class="input" type="password" autocomplete="current-password"
                 [(ngModel)]="password" placeholder="••••••••" (keydown.enter)="submit()" />
             </div>
 
@@ -72,12 +72,8 @@ import { UI } from '../ui/ui';
       gap: 16px; padding: 0 clamp(14px, 4vw, 34px); }
     .al__body { padding: clamp(18px, 5vw, 60px) clamp(14px, 4vw, 34px) 70px; display: flex; justify-content: center; }
     .al__card { width: min(460px, 100%); }
-    .mark { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
-      background: linear-gradient(140deg, #14b87a, #5a46f0 120%); font-size: 15px; flex: none; }
-    .mark--lg { width: 46px; height: 46px; border-radius: 14px; font-size: 24px; }
     .linkbtn { background: none; border: 0; color: var(--brand-600); font: inherit; font-weight: 600;
       cursor: pointer; padding: 0; text-decoration: underline; }
-    .g-9 { gap: 9px }
   `],
 })
 export class AdminLogin {

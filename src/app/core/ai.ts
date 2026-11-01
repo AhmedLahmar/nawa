@@ -434,7 +434,7 @@ export function copilotAnswer(question: string, ctx: CopilotContext): CopilotAns
         `4. Publish what you heard — including the objections. The failure posts on this platform get 3× the engagement of the success ones, and they are what supporters trust.\n\n` +
         `Kill criteria (decide them now): if fewer than 8 of 20 confirm the problem and none will pre-commit, change the segment before you change the product.`,
       followUps: ['What questions should I ask in an interview?', 'Who are my competitors?', 'How should I price my product?'],
-      action: { label: 'Run the AI Idea Validator', route: '/build/validate' },
+      action: { label: 'Run the AI Idea Validator', route: '/build/validator' },
     };
   }
 

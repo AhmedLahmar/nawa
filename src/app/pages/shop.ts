@@ -4,6 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Product, ProductType } from '../core/models';
 import { Store } from '../core/store';
+import { MoneyGuide } from '../feed/money-guide';
 import { fmt, UI } from '../ui/ui';
 
 const TYPE_META: Record<ProductType, { label: string; icon: string; tag: string }> = {
@@ -19,7 +20,7 @@ const TYPE_META: Record<ProductType, { label: string; icon: string; tag: string 
 @Component({
   selector: 'app-shop-page',
   standalone: true,
-  imports: [RouterLink, FormsModule, UI],
+  imports: [RouterLink, FormsModule, UI, MoneyGuide],
   template: `
     <div class="page">
       <div class="page-head">
@@ -30,6 +31,7 @@ const TYPE_META: Record<ProductType, { label: string; icon: string; tag: string 
         </div>
         <a class="btn btn--primary" routerLink="/shop/new"><app-icon name="plus" [size]="15" /> Sell a product</a>
       </div>
+      <app-money-guide [highlight]="['buy', 'preorder']" />
 
       <div class="row g-6 scroll-x mb-16">
         @for (f of filters; track f.key) {
@@ -198,7 +200,7 @@ export class ShopPage {
                   <button class="star-btn" [class.on]="myRating() >= n" (click)="myRating.set(n)">★</button>
                 }
               </div>
-              <textarea class="textarea" rows="2" [(ngModel)]="reviewText" placeholder="How was it?"></textarea>
+              <textarea aria-label="Write a review" class="textarea" rows="2" [(ngModel)]="reviewText" placeholder="How was it?"></textarea>
               <button class="btn btn--sm" [disabled]="!myRating() || !reviewText.trim()" (click)="review(p.id)">Post review</button>
             </div>
           </div>
@@ -219,9 +221,9 @@ export class ShopPage {
               @if (p.type === 'physical') {
                 <div class="row g-8">
                   <span class="sm muted grow">Quantity</span>
-                  <button class="btn btn--icon btn--sm" (click)="dec()"><app-icon name="minus" [size]="14" /></button>
+                  <button type="button" class="btn btn--icon btn--sm" aria-label="Decrease quantity" (click)="dec()"><app-icon name="minus" [size]="14" /></button>
                   <span class="b num" style="min-width:24px;text-align:center">{{ qty() }}</span>
-                  <button class="btn btn--icon btn--sm" (click)="inc(p.stock)"><app-icon name="plus" [size]="14" /></button>
+                  <button type="button" class="btn btn--icon btn--sm" aria-label="Increase quantity" (click)="inc(p.stock)"><app-icon name="plus" [size]="14" /></button>
                 </div>
               }
 
@@ -291,8 +293,6 @@ export class ShopPage {
   styles: [`
     .star-btn { font-size: 22px; line-height: 1; color: var(--line-2); background: none; border: 0; cursor: pointer; }
     .star-btn.on { color: var(--amber-500); }
-    .wsgrid { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 16px; align-items: start; }
-    @media (max-width: 1020px) { .wsgrid { grid-template-columns: 1fr; } }
   `],
 })
 export class ProductPage {
@@ -370,34 +370,34 @@ export class ProductPage {
           </div>
 
           <div class="field">
-            <label>Type</label>
-            <div class="row g-8">
+            <label id="sell-type-l">Type</label>
+            <div class="row g-8 wrap" role="group" aria-labelledby="sell-type-l">
               @for (t of types; track t.key) {
-                <button class="chip" [class.chip--on]="type() === t.key" (click)="type.set(t.key)">{{ t.emoji }} {{ t.label }}</button>
+                <button type="button" class="chip" [class.chip--on]="type() === t.key" [attr.aria-pressed]="type() === t.key" (click)="type.set(t.key)">{{ t.emoji }} {{ t.label }}</button>
               }
             </div>
           </div>
 
           <div class="grid grid-2">
-            <div class="field"><label>Title</label><input class="input" [(ngModel)]="title" placeholder="e.g. Weekly Farm Box" /></div>
-            <div class="field"><label>Category</label><input class="input" [(ngModel)]="category" placeholder="e.g. Food & produce" /></div>
+            <div class="field"><label for="f-shop-1">Title</label><input id="f-shop-1" class="input" [(ngModel)]="title" placeholder="e.g. Weekly Farm Box" /></div>
+            <div class="field"><label for="f-shop-2">Category</label><input id="f-shop-2" class="input" [(ngModel)]="category" placeholder="e.g. Food & produce" /></div>
           </div>
-          <div class="field"><label>One-line pitch</label><input class="input" [(ngModel)]="tagline" placeholder="What it is, in a sentence" /></div>
-          <div class="field"><label>Description</label><textarea class="textarea" rows="4" [(ngModel)]="description"></textarea></div>
+          <div class="field"><label for="f-shop-3">One-line pitch</label><input id="f-shop-3" class="input" [(ngModel)]="tagline" placeholder="What it is, in a sentence" /></div>
+          <div class="field"><label for="f-shop-4">Description</label><textarea id="f-shop-4" class="textarea" rows="4" [(ngModel)]="description"></textarea></div>
 
           <div class="grid grid-2">
-            <div class="field"><label>Price ({{ store.currency }})</label><input class="input num" type="number" min="0" step="5" [(ngModel)]="price" /></div>
-            <div class="field"><label>Emoji</label><input class="input" [(ngModel)]="emoji" maxlength="2" /></div>
+            <div class="field"><label for="f-shop-5">Price ({{ store.currency }})</label><input id="f-shop-5" class="input num" type="number" min="0" step="5" [(ngModel)]="price" /></div>
+            <div class="field"><label for="f-shop-6">Emoji</label><input id="f-shop-6" class="input" [(ngModel)]="emoji" maxlength="2" /></div>
           </div>
 
           @if (type() === 'physical') {
-            <div class="field"><label>Stock</label><input class="input num" type="number" min="0" [(ngModel)]="stock" /></div>
+            <div class="field"><label for="f-shop-7">Stock</label><input id="f-shop-7" class="input num" type="number" min="0" [(ngModel)]="stock" /></div>
           }
           @if (type() === 'service') {
-            <div class="field"><label>Available slots (comma separated)</label><input class="input" [(ngModel)]="slotsRaw" placeholder="Tue 10:00, Wed 15:00" /></div>
+            <div class="field"><label for="f-shop-8">Available slots (comma separated)</label><input id="f-shop-8" class="input" [(ngModel)]="slotsRaw" placeholder="Tue 10:00, Wed 15:00" /></div>
           }
           @if (type() === 'digital') {
-            <div class="field"><label>Delivery note</label><input class="input" [(ngModel)]="deliveryNote" placeholder="How the buyer receives it" /></div>
+            <div class="field"><label for="f-shop-9">Delivery note</label><input id="f-shop-9" class="input" [(ngModel)]="deliveryNote" placeholder="How the buyer receives it" /></div>
           }
           @if (type() === 'preorder') {
             <div class="panel panel--brand row-t g-8">
@@ -405,8 +405,8 @@ export class ProductPage {
               <span class="tiny">Buyers pay now and receive the product after you ship. Great for funding a first production run.</span>
             </div>
             <div class="grid grid-2">
-              <div class="field"><label>Estimated delivery</label><input class="input" [(ngModel)]="estimatedDelivery" placeholder="e.g. Ships Q2 2026" /></div>
-              <div class="field"><label>Units goal before production</label><input class="input num" type="number" min="1" [(ngModel)]="unitsGoal" /></div>
+              <div class="field"><label for="f-shop-10">Estimated delivery</label><input id="f-shop-10" class="input" [(ngModel)]="estimatedDelivery" placeholder="e.g. Ships Q2 2026" /></div>
+              <div class="field"><label for="f-shop-11">Units goal before production</label><input id="f-shop-11" class="input num" type="number" min="1" [(ngModel)]="unitsGoal" /></div>
             </div>
             @if (myCampaign(); as c) {
               <label class="row g-8 sm" style="cursor:pointer">
@@ -417,7 +417,7 @@ export class ProductPage {
             }
           }
 
-          <div class="field"><label>What's included (one per line)</label><textarea class="textarea" rows="3" [(ngModel)]="includesRaw" placeholder="First thing&#10;Second thing"></textarea></div>
+          <div class="field"><label for="f-shop-12">What's included (one per line)</label><textarea id="f-shop-12" class="textarea" rows="3" [(ngModel)]="includesRaw" placeholder="First thing&#10;Second thing"></textarea></div>
 
           <div class="row between">
             <a class="btn btn--ghost" routerLink="/shop">Cancel</a>

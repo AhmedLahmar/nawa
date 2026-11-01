@@ -38,7 +38,7 @@ const CITIES = ['Tunis', 'Sfax', 'Sousse', 'Monastir', 'Bizerte', 'Cairo', 'Casa
       <div class="searchbar mb-16" style="max-width:520px">
         <app-icon name="search" [size]="17" class="faint" />
         <input [(ngModel)]="q" placeholder="Search startups, founders, sectors, cities…" />
-        @if (q) { <button class="btn btn--icon btn--xs" (click)="q = ''"><app-icon name="x" [size]="13" /></button> }
+        @if (q) { <button type="button" class="btn btn--icon btn--xs" aria-label="Clear search" (click)="q = ''"><app-icon name="x" [size]="13" /></button> }
       </div>
 
       <div class="tabs mb-16">
@@ -147,7 +147,8 @@ const CITIES = ['Tunis', 'Sfax', 'Sousse', 'Monastir', 'Bizerte', 'Cairo', 'Casa
           </div>
           <div class="stories">
             @for (g of store.stories(); track g.id) {
-              <div class="story" (click)="openStory($index)">
+              <div class="story" role="button" tabindex="0" [attr.aria-label]="'Open story from ' + name(g.authorId)"
+                (click)="openStory($index)" (keydown.enter)="openStory($index)" (keydown.space)="$event.preventDefault(); openStory($index)">
                 <div class="story__ring" [class.story__ring--seen]="store.isStorySeen(g.id)">
                   <div class="story__inner">
                     <app-av [name]="name(g.authorId)" [size]="63" />

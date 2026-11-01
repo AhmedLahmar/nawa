@@ -31,10 +31,19 @@ import { fmt, UI } from '../ui/ui';
                   <p class="muted" style="margin-top:4px">{{ s.tagline }}</p>
                 </div>
               </div>
-              <div class="row g-8">
-                <button class="btn btn--primary" (click)="store.toggleFollow(s.id, s.name)">
-                  @if (store.isFollowing(s.id)) { Following ✓ } @else { <app-icon name="plus" [size]="15" /> Follow journey }
-                </button>
+              <div class="row g-8 wrap">
+                @if (s.founderId === meId) {
+                  <a class="btn btn--primary" [routerLink]="['/s', s.slug, 'counselor']">
+                    <app-icon name="cap" [size]="15" /> Ask the Counselor
+                  </a>
+                  <a class="btn" routerLink="/build/generate" [queryParams]="{ startup: s.id }">
+                    <app-icon name="code" [size]="15" /> Generate my project
+                  </a>
+                } @else {
+                  <button type="button" class="btn btn--primary" (click)="store.toggleFollow(s.id, s.name)">
+                    @if (store.isFollowing(s.id)) { Following ✓ } @else { <app-icon name="plus" [size]="15" /> Follow journey }
+                  </button>
+                }
                 @if (campaign(); as c) {
                   <a class="btn btn--seed" [routerLink]="['/fund', c.id]"><app-icon name="rocket" [size]="15" /> Support</a>
                 }
@@ -328,6 +337,7 @@ export class StartupPage {
   readonly store = inject(Store);
   private route = inject(ActivatedRoute);
   readonly fmt = fmt;
+  readonly meId = ME_ID;
 
   private params = toSignal(this.route.paramMap);
   private query = toSignal(this.route.queryParamMap);

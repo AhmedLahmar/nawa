@@ -475,6 +475,14 @@ export class Store {
 
   setActiveStartup(id: string): void { this.activeStartupId.set(id); this.save(); }
 
+  /** Edit the idea fields of a startup the user owns (used by the Counselor's "edit idea"). */
+  updateStartup(id: string, patch: Partial<Pick<Startup, 'tagline' | 'problem' | 'solution' | 'businessModel' | 'market'>>): void {
+    const s = this.startup(id);
+    if (!s || s.founderId !== ME_ID) return;
+    this.startups.update(list => list.map(x => (x.id === id ? { ...x, ...patch } : x)));
+    this.save();
+  }
+
   /* ---------------- funding (simulated) ---------------- */
   hasBacked = (campaignId: string) => this.backed().some(b => b.campaignId === campaignId);
 

@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ME_ID } from '../core/mock-data';
+import { CounselorHistory } from '../services/counselor-history';
 import { Store } from '../core/store';
 import { COPILOT_PROMPTS, analyzeIdea, copilotAnswer } from '../core/ai';
 import { IdeaAnalysis } from '../core/models';
@@ -69,6 +70,31 @@ const TABS = [
         <div class="wsgrid">
           <div class="col g-16">
             <app-next-steps />
+
+            @if (s(); as s) {
+              <section class="card row between wrap g-12 pad" aria-labelledby="cn-h">
+                <div class="row g-12" style="min-width:0">
+                  <span class="mark" aria-hidden="true">🎓</span>
+                  <div class="col g-2" style="min-width:0">
+                    <h2 id="cn-h" class="sm b">Ask the Counselor</h2>
+                    @if (latestReview(); as r) {
+                      <span class="tiny muted">Last review (v{{ r.version }}): <b>{{ r.review.verdictLabel }}</b></span>
+                    } @else {
+                      <span class="tiny muted">Get an honest, structured critique of {{ s.name }} — then turn it into a project.</span>
+                    }
+                  </div>
+                </div>
+                <div class="row g-8">
+                  <a class="btn btn--sm btn--primary" [routerLink]="['/s', s.slug, 'counselor']">
+                    {{ latestReview() ? 'Open review' : 'Ask the Counselor' }}
+                  </a>
+                  <a class="btn btn--sm" routerLink="/build/generate"
+                    [queryParams]="latestReview() ? { startup: s.id, review: latestReview()!.id } : { startup: s.id }">
+                    <app-icon name="code" [size]="14" /> Generate project
+                  </a>
+                </div>
+              </section>
+            }
 
             <app-composer [startExpanded]="composeParam()" />
 
@@ -676,6 +702,8 @@ export class BuildPage {
     return s ? this.store.campaignOf(s.id) : undefined;
   });
   readonly myPosts = computed(() => this.store.postsBy(ME_ID));
+  private counselorHistory = inject(CounselorHistory);
+  readonly latestReview = computed(() => { const s = this.s(); return s ? this.counselorHistory.latest(s.id) : undefined; });
   readonly sName = computed(() => this.s()?.name ?? 'your idea');
   readonly sDay = computed(() => this.s()?.day ?? 1);
   readonly sFollowers = computed(() => this.s()?.followers ?? 0);

@@ -21,8 +21,6 @@ import { WalletPage } from './pages/wallet';
 import { JobsPage, JobPage, PostJobPage } from './pages/jobs';
 import { EventsPage } from './pages/events';
 import { RoomsPage, RoomPage } from './pages/rooms';
-import { AdminLogin } from './pages/admin-login';
-import { AdminDashboard } from './pages/admin';
 import { adminGuard } from './core/admin-guard';
 
 export const routes: Routes = [
@@ -74,6 +72,9 @@ export const routes: Routes = [
       { path: 'rooms', component: RoomsPage, title: 'Chat rooms · Nawa' },
       { path: 'rooms/:id', component: RoomPage, title: 'Room · Nawa' },
 
+      // new feature pages are lazy-loaded so the initial bundle stays within budget
+      { path: 's/:slug/counselor', loadComponent: () => import('./pages/counselor').then(m => m.CounselorPage), title: 'Ask the Counselor · Nawa' },
+      { path: 'build/generate', loadComponent: () => import('./pages/generate').then(m => m.GeneratePage), title: 'Generate my project · Nawa' },
       { path: 's/:slug', component: StartupPage, title: 'Startup · Nawa' },
       { path: 'me', component: PersonPage, title: 'Your profile · Nawa' },
       { path: 'u/:handle', component: PersonPage, title: 'Profile · Nawa' },
@@ -83,8 +84,8 @@ export const routes: Routes = [
   { path: 'live/:id', component: LiveViewerPage, title: 'Live · Nawa' },
 
   // admin console — its own chrome, gated behind a simulated login
-  { path: 'admin/login', component: AdminLogin, title: 'Admin sign in · Nawa' },
-  { path: 'admin', component: AdminDashboard, canActivate: [adminGuard], title: 'Admin console · Nawa' },
+  { path: 'admin/login', loadComponent: () => import('./pages/admin-login').then(m => m.AdminLogin), title: 'Admin sign in · Nawa' },
+  { path: 'admin', loadComponent: () => import('./pages/admin').then(m => m.AdminDashboard), canActivate: [adminGuard], title: 'Admin console · Nawa' },
 
   { path: '**', redirectTo: '' },
 ];
